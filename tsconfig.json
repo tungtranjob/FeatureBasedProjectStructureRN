@@ -1,0 +1,19 @@
+{
+  "extends": "@react-native/typescript-config/tsconfig.json",
+  "compilerOptions": {
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "baseUrl": "./src",
+    /* Alias phải khai báo Ở CẢ 2 NƠI: tsconfig (cho TS hiểu) và
+       babel.config.js (cho Metro bundle được lúc runtime). Quên 1 trong 2
+       là lỗi "module not found" lúc chạy dù IDE vẫn xanh. */
+    "paths": {
+      "@app/*":      ["app/*"],
+      "@core/*":     ["core/*"],
+      "@shared/*":   ["shared/*"],
+      "@features/*": ["features/*"]
+    }
+  },
+  "include": ["src/**/*", "index.js"],
+  "exclude": ["node_modules", "android", "ios"]
+}
