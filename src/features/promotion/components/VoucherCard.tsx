@@ -17,11 +17,11 @@ interface VoucherCardProps {
 }
 
 /**
- * Thẻ voucher — export ra public API để feature checkout tái sử dụng.
+ * The voucher card — exported through the public API so checkout can reuse it.
  *
- * Nó tự tính xem voucher có dùng được không thay vì nhận cờ `disabled` từ
- * ngoài. Lý do: quy tắc đó thuộc về promotion. Nếu bắt checkout truyền vào,
- * một ngày nào đó sẽ có màn hình khác truyền sai và hai chỗ hiển thị khác nhau.
+ * It works out whether the voucher is usable itself instead of taking a `disabled`
+ * flag from outside. The reason: that rule belongs to promotion. Make checkout pass
+ * it in and one day another screen will pass the wrong value and the two will disagree.
  */
 export function VoucherCard({
   voucher,

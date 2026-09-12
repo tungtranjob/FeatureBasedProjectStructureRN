@@ -1,9 +1,9 @@
 import type {Order, OrderStatus} from './types';
 
 /**
- * Các bước hiển thị trên thanh tiến trình đơn hàng.
- * CANCELLED không nằm trong đây vì nó không phải một bước tiến — nó là
- * nhánh rẽ ra ngoài, và UI hiển thị khác hẳn.
+ * The steps shown on the order progress bar.
+ * CANCELLED is not among them because it is not a step forward — it is a branch off
+ * to the side, and the UI renders it completely differently.
  */
 export const ORDER_PROGRESS_STEPS: OrderStatus[] = [
   'CONFIRMED',
@@ -31,29 +31,29 @@ export const ORDER_STATUS_EMOJI: Record<OrderStatus, string> = {
 };
 
 /**
- * QUY TẮC NGHIỆP VỤ: chỉ huỷ được trước khi bếp bắt đầu nấu.
+ * BUSINESS RULE: cancelling is only possible before the kitchen starts cooking.
  *
- * Hàm này nằm ở model/ chứ không nằm trong OrderDetailScreen, vì cùng một
- * quy tắc được dùng ở ít nhất ba nơi: ẩn/hiện nút Huỷ trong danh sách, trong
- * màn chi tiết, và trong hộp thoại xác nhận. Ba bản sao của một điều kiện
- * `if` là ba cơ hội để chúng lệch nhau.
+ * This function lives in model/ rather than in OrderDetailScreen, because the same
+ * rule is used in at least three places: showing/hiding the Cancel button in the list,
+ * in the detail screen, and in the confirmation dialog. Three copies of one `if`
+ * condition are three chances for them to drift apart.
  *
- * (Server vẫn kiểm tra lại — client chỉ quyết định hiển thị.)
+ * (The server checks again — the client only decides what to display.)
  */
 export const canCancelOrder = (order: Order): boolean =>
   order.status === 'PENDING_PAYMENT' || order.status === 'CONFIRMED';
 
-/** Đơn còn "đang chạy" (hiện ở tab Đang đến) hay đã kết thúc. */
+/** Whether the order is still "active" (shown in the Đang đến tab) or finished. */
 export const isActiveOrder = (order: Order): boolean =>
   order.status !== 'COMPLETED' && order.status !== 'CANCELLED';
 
-/** Vị trí hiện tại trên thanh tiến trình; -1 nghĩa là không áp dụng. */
+/** The current position on the progress bar; -1 means not applicable. */
 export const getProgressIndex = (status: OrderStatus): number =>
   ORDER_PROGRESS_STEPS.indexOf(status);
 
 /**
- * Giờ giao dự kiến = lúc đặt + ETA.
- * Nhận `placedAt` dạng ISO string, trả về Date để UI tự định dạng.
+ * Estimated delivery time = time placed + ETA.
+ * Takes `placedAt` as an ISO string and returns a Date for the UI to format.
  */
 export const getEstimatedArrival = (order: Order): Date =>
   new Date(new Date(order.placedAt).getTime() + order.etaMinutes * 60_000);

@@ -8,15 +8,15 @@ import {
 import type {MenuItem, OptionSelection} from '../model/types';
 
 /**
- * TẦNG NỐI GIỮA model/ VÀ MÀN HÌNH.
+ * THE LAYER BETWEEN model/ AND THE SCREEN.
  *
- * Hook này giữ state tạm của form tuỳ chọn món và uỷ thác MỌI quyết định
- * cho các hàm thuần trong model/. Bản thân nó gần như không chứa logic —
- * đó là dấu hiệu tốt.
+ * This hook holds the temporary state of the item-customisation form and delegates EVERY
+ * decision to the pure functions in model/. It contains almost no logic itself —
+ * which is a good sign.
  *
- * Vì sao state ở đây mà không ở Zustand: lựa chọn topping chỉ sống trong
- * lúc màn hình mở. Rời màn hình là bỏ đi. Đưa vào store toàn cục chỉ tổ
- * phải nhớ dọn dẹp và sẽ rò rỉ sang lần mở sau.
+ * Why the state lives here and not in Zustand: the topping selection only exists while
+ * the screen is open. Leave the screen and it is gone. Putting it in a global store just
+ * means remembering to clean it up, and it would leak into the next time you open it.
  */
 export function useItemCustomizer(item: MenuItem | undefined) {
   const [selection, setSelection] = useState<OptionSelection>({});
@@ -24,8 +24,8 @@ export function useItemCustomizer(item: MenuItem | undefined) {
   const [note, setNote] = useState('');
   const [hasSubmitted, setHasSubmitted] = useState(false);
 
-  // Khởi tạo lựa chọn mặc định NGAY khi item về, không cần useEffect.
-  // Mẹo "derived state": so sánh id đã khởi tạo với id hiện tại.
+  // Initialise the default selection AS SOON AS the item arrives, no useEffect needed.
+  // The "derived state" trick: compare the initialised id with the current one.
   const [initializedFor, setInitializedFor] = useState<string | null>(null);
   if (item && initializedFor !== item.id) {
     setInitializedFor(item.id);
@@ -58,7 +58,7 @@ export function useItemCustomizer(item: MenuItem | undefined) {
     totalPrice,
     errors,
     isValid: errors.length === 0,
-    /** Chỉ hiện lỗi SAU khi người dùng bấm thêm vào giỏ, tránh màn hình đỏ lòm ngay lúc mở. */
+    /** Only show errors AFTER the user taps add-to-cart, so the screen is not covered in red on open. */
     visibleErrors: hasSubmitted ? errors : [],
 
     setQuantity,

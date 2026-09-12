@@ -5,10 +5,10 @@ import type {UserId} from '@shared/types/id';
 import type {AuthUser, Session} from '../model/types';
 
 /**
- * TẦNG API của feature auth: gọi mạng + dịch DTO sang domain model.
+ * The auth feature's API LAYER: network calls + translating DTOs into domain models.
  *
- * Mọi thứ bẩn thỉu của giao thức (tên field, kiểu string) dừng lại ở đây.
- * Từ tầng này trở lên, app chỉ làm việc với `Session` và `AuthUser`.
+ * Everything grubby about the protocol (field names, string types) stops here.
+ * Above this layer the app only deals with `Session` and `AuthUser`.
  */
 
 const toAuthUser = (dto: UserDto): AuthUser => ({

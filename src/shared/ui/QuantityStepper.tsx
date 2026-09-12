@@ -12,11 +12,11 @@ interface QuantityStepperProps {
 }
 
 /**
- * Component "được điều khiển" (controlled): nó không giữ state riêng.
+ * A controlled component: it keeps no state of its own.
  *
- * Đây là lựa chọn có chủ đích. Số lượng món là state NGHIỆP VỤ — nó thuộc
- * về cart store, không thuộc về component. Nếu component tự giữ state, ta sẽ
- * có 2 nguồn sự thật và chúng sẽ lệch nhau.
+ * That is deliberate. Item quantity is DOMAIN state — it belongs to the cart
+ * store, not to the component. If the component held its own state we would have
+ * two sources of truth and they would drift apart.
  */
 export function QuantityStepper({
   value,

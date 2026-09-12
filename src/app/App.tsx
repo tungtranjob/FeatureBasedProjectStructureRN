@@ -5,11 +5,11 @@ import {AppProviders} from './providers/AppProviders';
 import {RootNavigator} from './navigation/RootNavigator';
 
 /**
- * Component gốc.
+ * The root component.
  *
- * Nó cố tình ngắn: mọi thứ phức tạp đã được đẩy vào bootstrap/, providers/
- * và navigation/. Một App.tsx dài là dấu hiệu app đang thiếu chỗ để đặt
- * những thứ đó.
+ * It is deliberately short: everything complicated has been pushed into bootstrap/,
+ * providers/ and navigation/. A long App.tsx is a sign the app has nowhere proper
+ * to put those things.
  */
 export function App() {
   useEffect(() => bootstrap(), []);

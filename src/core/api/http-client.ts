@@ -2,7 +2,7 @@ import {AppError} from '@shared/errors/app-error';
 import {env} from '../config/env';
 import {logger} from '../logger/logger';
 import {authTokenBridge} from './auth-token';
-import './mock/handlers'; // side-effect: đăng ký toàn bộ route mock
+import './mock/handlers'; // side effect: registers every mock route
 import {
   handleMockRequest,
   MockHttpError,
@@ -10,14 +10,14 @@ import {
 } from './mock/mock-server';
 
 /**
- * HTTP CLIENT — CỬA DUY NHẤT RA MẠNG.
+ * HTTP CLIENT — THE ONLY DOOR TO THE NETWORK.
  *
- * Mọi feature gọi API qua đây. Không feature nào được gọi fetch() trực tiếp.
- * Nhờ vậy 4 việc dưới đây làm MỘT LẦN thay vì lặp lại ở 40 chỗ:
- *   1. Gắn header Authorization.
- *   2. Dịch mọi loại lỗi về một kiểu AppError duy nhất.
- *   3. Log request (bật ở dev).
- *   4. Bật/tắt mock bằng đúng một cờ cấu hình.
+ * Every feature calls the API through here. No feature calls fetch() directly.
+ * That way the four things below happen ONCE instead of being repeated in 40 places:
+ *   1. Attaching the Authorization header.
+ *   2. Translating every kind of error into a single AppError type.
+ *   3. Request logging (on in dev).
+ *   4. Turning the mock on/off with one config flag.
  */
 
 const request = async <T>(
@@ -60,18 +60,18 @@ const realRequest = async <T>(
     );
   }
 
-  // 204 No Content không có body để parse.
+  // A 204 No Content has no body to parse.
   if (response.status === 204) {
     return undefined as T;
   }
   return (await response.json()) as T;
 };
 
-/** Dịch MỌI loại lỗi (mock, fetch, parse...) về AppError. */
+/** Translates EVERY kind of error (mock, fetch, parse, ...) into an AppError. */
 const normalizeError = (error: unknown, context: string): AppError => {
   if (error instanceof MockHttpError) {
     if (error.status === 401 || error.status === 403) {
-      // Hết phiên -> báo cho auth feature biết để đăng xuất.
+      // Session expired -> tell the auth feature to sign the user out.
       authTokenBridge.notifyUnauthorized();
     }
     const appError = new AppError({
@@ -83,7 +83,7 @@ const normalizeError = (error: unknown, context: string): AppError => {
     return appError;
   }
 
-  // TypeError từ fetch = mất mạng / DNS lỗi / server không phản hồi.
+  // A TypeError from fetch = offline / DNS failure / server not responding.
   if (error instanceof TypeError) {
     return new AppError({
       kind: 'network',
@@ -122,7 +122,7 @@ export const http = {
   delete: <T>(path: string) => request<T>('DELETE', path),
 };
 
-/** Ghép query string, bỏ qua giá trị rỗng/undefined. */
+/** Builds a query string, skipping empty/undefined values. */
 export const withQuery = (
   path: string,
   params: Record<string, string | number | boolean | null | undefined>,

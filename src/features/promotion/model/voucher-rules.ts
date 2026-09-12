@@ -3,14 +3,14 @@ import {formatCurrency} from '@shared/lib/format';
 import type {Voucher, VoucherEligibility} from './types';
 
 /**
- * Voucher có dùng được cho đơn này không?
+ * Can this voucher be used on this order?
  *
- * Trả về LÝ DO chứ không chỉ true/false. UI cần nói được
- * "Cần thêm 30.000đ nữa" thay vì làm mờ voucher và để user tự đoán —
- * khác biệt giữa một app dùng được và một app gây ức chế.
+ * Returns a REASON rather than just true/false. The UI needs to be able to say
+ * "Cần thêm 30.000đ nữa" instead of dimming the voucher and leaving the user to guess —
+ * the difference between a usable app and an infuriating one.
  *
- * Lưu ý: đây là kiểm tra PHÍA CLIENT, để hiển thị. Server vẫn kiểm tra lại
- * khi đặt đơn (xem handlers.ts). Không bao giờ tin mỗi client.
+ * Note: this is a CLIENT-SIDE check, for display. The server checks again when the
+ * order is placed (see handlers.ts). Never trust the client alone.
  */
 export const checkEligibility = (
   voucher: Voucher,
@@ -48,10 +48,10 @@ export const isVoucherEligible = (
 ): boolean => checkEligibility(voucher, params, now).eligible;
 
 /**
- * Số tiền được giảm.
+ * The discounted amount.
  *
- * Trả về 0 khi voucher không hợp lệ thay vì ném lỗi: hàm này chạy trong
- * lúc render để hiện preview, mà render thì không được phép ném lỗi.
+ * Returns 0 for an invalid voucher rather than throwing: this function runs during
+ * render to show a preview, and render must never throw.
  */
 export const calcDiscount = (
   voucher: Voucher | null,
@@ -68,11 +68,11 @@ export const calcDiscount = (
   switch (voucher.discountType) {
     case 'PERCENT': {
       const raw = money(Math.round((params.subtotal * voucher.value) / 100));
-      // Trần giảm giá: "giảm 20% tối đa 30k" -> đơn 500k vẫn chỉ giảm 30k.
+      // The discount cap: "20% off up to 30k" -> a 500k order still only gets 30k off.
       return voucher.maxDiscount ? minMoney(raw, voucher.maxDiscount) : raw;
     }
     case 'FIXED':
-      // Không giảm quá tiền hàng, tránh tổng đơn âm.
+      // Never discount more than the item total, so the order cannot go negative.
       return clampToZero(minMoney(money(voucher.value), params.subtotal));
     case 'FREESHIP':
       return params.deliveryFee;
@@ -80,10 +80,10 @@ export const calcDiscount = (
 };
 
 /**
- * Sắp xếp: dùng được lên trước, trong đó giảm nhiều hơn lên trước.
+ * Ordering: usable vouchers first, and among those, the biggest discount first.
  *
- * `now` cũng là tham số (giống các hàm trên) để test không phụ thuộc vào
- * ngày chạy test — một test xanh hôm nay và đỏ sau Tết là test tồi.
+ * `now` is a parameter too (like the functions above) so tests do not depend on the
+ * date they run — a test that is green today and red after New Year is a bad test.
  */
 export const sortVouchersForDisplay = (
   vouchers: Voucher[],

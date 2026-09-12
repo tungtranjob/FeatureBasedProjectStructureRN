@@ -1,55 +1,55 @@
-# FoodGo — React Native app đặt món ăn (kiến trúc Feature-First)
+# FoodGo — a React Native food ordering app (Feature-First architecture)
 
-Một codebase **chạy được, có test, có kiểm tra ranh giới tự động**, dùng làm tham chiếu cho kiến trúc feature-first trên React Native.
+A codebase that **runs, has tests, and enforces its own boundaries automatically**, meant as a reference for feature-first architecture on React Native.
 
-Toàn bộ luồng nghiệp vụ được cài đặt đầy đủ: **duyệt nhà hàng → xem menu → tuỳ chỉnh món → giỏ hàng → chọn địa chỉ & voucher → thanh toán online → theo dõi đơn**.
+The whole business flow is implemented end to end: **browse restaurants → view the menu → customise an item → cart → pick address & voucher → pay online → track the order**.
 
 | | |
 |---|---|
-| File TypeScript | 156 |
-| Dòng code | ~9.700 |
-| Feature | 9 |
-| Test | 74 (8 suite) |
-| `tsc --noEmit` | ✅ sạch (`strict` + `noUncheckedIndexedAccess`) |
-| `depcruise` | ✅ không vi phạm ranh giới |
-| Backend | Mock server chạy trong app, đổi sang API thật bằng **1 cờ** |
+| TypeScript files | 156 |
+| Lines of code | ~9,700 |
+| Features | 9 |
+| Tests | 74 (8 suites) |
+| `tsc --noEmit` | ✅ clean (`strict` + `noUncheckedIndexedAccess`) |
+| `depcruise` | ✅ no boundary violations |
+| Backend | An in-app mock server; switch to a real API with **one flag** |
 
 ---
 
-## Mục lục
+## Table of contents
 
-1. [Chạy thử](#1-chạy-thử)
-2. [Bản đồ thư mục](#2-bản-đồ-thư-mục)
-3. [Bốn tầng và luật phụ thuộc](#3-bốn-tầng-và-luật-phụ-thuộc)
-4. [Giải phẫu một feature](#4-giải-phẫu-một-feature)
-5. [Quản lý state](#5-quản-lý-state--phần-quan-trọng-nhất)
+1. [Running it](#1-running-it)
+2. [Directory map](#2-directory-map)
+3. [The four layers and the dependency rules](#3-the-four-layers-and-the-dependency-rules)
+4. [Anatomy of a feature](#4-anatomy-of-a-feature)
+5. [State management](#5-state-management--the-most-important-part)
 6. [Mock API & dummy data](#6-mock-api--dummy-data)
-7. [Các feature nói chuyện với nhau](#7-các-feature-nói-chuyện-với-nhau)
-8. [Luồng thanh toán](#8-luồng-thanh-toán--phần-khó-nhất-trên-mobile)
-9. [Thêm một feature mới](#9-thêm-một-feature-mới)
-10. [Kiểm thử](#10-kiểm-thử)
-11. [Những gì chưa làm](#11-những-gì-chưa-làm)
+7. [How features talk to each other](#7-how-features-talk-to-each-other)
+8. [The payment flow](#8-the-payment-flow--the-hardest-part-on-mobile)
+9. [Adding a new feature](#9-adding-a-new-feature)
+10. [Testing](#10-testing)
+11. [What is deliberately missing](#11-what-is-deliberately-missing)
 
 ---
 
-## 1. Chạy thử
+## 1. Running it
 
-Repo này chứa **`src/` + cấu hình**, không kèm thư mục `android/` và `ios/` (chúng là output của CLI, nặng và phụ thuộc máy). Ghép vào một project RN mới:
+This repo contains **`src/` + configuration** only, without the `android/` and `ios/` folders (they are CLI output — large and machine-specific). To graft it onto a fresh RN project:
 
 ```bash
-# 1. Tạo project RN 0.76.5 trống
+# 1. Create an empty RN 0.76.5 project
 npx @react-native-community/cli@latest init FoodGo --version 0.76.5
 cd FoodGo
 
-# 2. Chép code và cấu hình từ repo này đè lên
-cp -R /đường/dẫn/foodgo-app/src              ./
-cp    /đường/dẫn/foodgo-app/index.js         ./
-cp    /đường/dẫn/foodgo-app/babel.config.js  ./
-cp    /đường/dẫn/foodgo-app/tsconfig.json    ./
-cp    /đường/dẫn/foodgo-app/jest.config.js   ./
-cp    /đường/dẫn/foodgo-app/.dependency-cruiser.js ./
+# 2. Copy the code and configuration from this repo over it
+cp -R /path/to/foodgo-app/src              ./
+cp    /path/to/foodgo-app/index.js         ./
+cp    /path/to/foodgo-app/babel.config.js  ./
+cp    /path/to/foodgo-app/tsconfig.json    ./
+cp    /path/to/foodgo-app/jest.config.js   ./
+cp    /path/to/foodgo-app/.dependency-cruiser.js ./
 
-# 3. Cài dependency
+# 3. Install dependencies
 npm i @react-navigation/native @react-navigation/native-stack \
       @react-navigation/bottom-tabs react-native-screens \
       react-native-safe-area-context react-native-gesture-handler \
@@ -59,85 +59,85 @@ npm i -D babel-plugin-module-resolver dependency-cruiser
 # 4. iOS
 cd ios && pod install && cd ..
 
-# 5. Chạy
-npm run ios      # hoặc npm run android
+# 5. Run
+npm run ios      # or npm run android
 ```
 
-Kiểm tra chất lượng — chạy được **ngay trong repo này**, không cần native:
+The quality checks run **directly in this repo**, with no native build required:
 
 ```bash
 npm run typecheck   # tsc --noEmit
-npm test            # 74 test
-npm run arch:check  # kiểm tra ranh giới feature
+npm test            # 74 tests
+npm run arch:check  # feature boundary checks
 ```
 
-### Đăng nhập demo
+### Demo login
 
-Số điện thoại bất kỳ (hợp lệ VN, mặc định điền sẵn `0901234567`), OTP bất kỳ 6 số. Gõ `000000` để xem nhánh lỗi.
+Any phone number (valid VN format; `0901234567` is pre-filled) and any 6-digit OTP. Enter `000000` to see the failure branch.
 
-### Bật lỗi mạng giả lập
+### Simulating network errors
 
-Trong [`src/core/config/env.ts`](src/core/config/env.ts), đổi `mock.failureRate` thành `0.3` để 30% request thất bại — dùng để kiểm chứng `ErrorView`, nút "Thử lại", và retry của TanStack Query.
+In [`src/core/config/env.ts`](src/core/config/env.ts), set `mock.failureRate` to `0.3` so 30% of requests fail — useful for exercising `ErrorView`, the retry button, and TanStack Query's retry behaviour.
 
 ---
 
-## 2. Bản đồ thư mục
+## 2. Directory map
 
 ```
 src/
-├── app/                       # ⭐ Composition root — nơi DUY NHẤT biết mọi feature
+├── app/                       # ⭐ Composition root — the ONLY place that knows every feature
 │   ├── App.tsx
 │   ├── bootstrap/
-│   │   ├── index.ts                      # khởi tạo, nối token vào http-client
-│   │   └── register-event-handlers.ts    # ⭐ nơi DUY NHẤT nối feature với nhau
+│   │   ├── index.ts                      # startup, plugs the token into http-client
+│   │   └── register-event-handlers.ts    # ⭐ the ONLY place features are wired together
 │   ├── navigation/
-│   │   ├── RootNavigator.tsx             # đăng ký mọi màn hình
+│   │   ├── RootNavigator.tsx             # registers every screen
 │   │   ├── MainTabNavigator.tsx
-│   │   ├── types.ts                      # hợp nhất ParamList + global augmentation
-│   │   ├── linking.config.ts             # gom deep link từ các feature
-│   │   └── navigation.service.ts         # điều hướng ngoài React tree
+│   │   ├── types.ts                      # merged ParamList + global augmentation
+│   │   ├── linking.config.ts             # gathers deep links from the features
+│   │   └── navigation.service.ts         # navigating outside the React tree
 │   └── providers/
 │       ├── AppProviders.tsx
 │       └── AppErrorBoundary.tsx
 │
-├── core/                      # Hạ tầng kỹ thuật — KHÔNG chứa nghiệp vụ
+├── core/                      # Technical infrastructure — NO business logic
 │   ├── api/
-│   │   ├── contracts.ts                  # kiểu JSON của server (wire DTO)
-│   │   ├── http-client.ts                # cửa duy nhất ra mạng
-│   │   ├── query-client.ts               # cấu hình cache TanStack Query
-│   │   ├── auth-token.ts                 # cầu nối token (dependency inversion)
+│   │   ├── contracts.ts                  # the server's JSON types (wire DTOs)
+│   │   ├── http-client.ts                # the only door to the network
+│   │   ├── query-client.ts               # TanStack Query cache configuration
+│   │   ├── auth-token.ts                 # the token bridge (dependency inversion)
 │   │   └── mock/
-│   │       ├── db.ts                     # toàn bộ dummy data
-│   │       ├── handlers.ts               # "nghiệp vụ" của backend giả
-│   │       └── mock-server.ts            # router + độ trễ + lỗi giả lập
+│   │       ├── db.ts                     # all of the dummy data
+│   │       ├── handlers.ts               # the fake backend's "business logic"
+│   │       └── mock-server.ts            # router + latency + simulated failures
 │   ├── events/{app-events.ts, app-event-bus.ts, use-app-event.ts}
 │   ├── storage/{kv.ts, zustand-persist.ts}
 │   ├── config/env.ts
 │   └── logger/logger.ts
 │
-├── shared/                    # Dùng chung — KHÔNG biết feature nào tồn tại
-│   ├── ui/                    # design system: Button, Card, Screen, Skeleton...
+├── shared/                    # Shared code — knows about NO feature
+│   ├── ui/                    # design system: Button, Card, Screen, Skeleton, ...
 │   ├── theme/                 # colors, spacing, typography
-│   ├── types/                 # Money (branded), branded ID, Paginated
-│   ├── lib/                   # format tiền/khoảng cách/thời gian
+│   ├── types/                 # Money (branded), branded IDs, Paginated
+│   ├── lib/                   # money/distance/time formatting
 │   ├── hooks/                 # useDebounce, useAppState
 │   └── errors/app-error.ts
 │
-└── features/                  # ⭐ TRÁI TIM CỦA APP
-    ├── auth/                  # đăng nhập OTP, session, hồ sơ
-    ├── address/               # sổ địa chỉ, địa chỉ giao hàng đang chọn
-    ├── restaurant/            # danh sách + chi tiết nhà hàng, giờ mở cửa
-    ├── menu/                  # menu, tuỳ chọn món, tính giá
-    ├── cart/                  # giỏ hàng (offline, persist)
-    ├── promotion/             # voucher + quy tắc giảm giá
-    ├── checkout/              # ⭐ điểm hội tụ — ghép 6 feature lại
-    ├── payment/               # cổng thanh toán, deep link, quay lại app
-    └── order/                 # đặt đơn, danh sách, chi tiết, theo dõi
+└── features/                  # ⭐ THE HEART OF THE APP
+    ├── auth/                  # OTP login, session, profile
+    ├── address/               # address book, currently selected delivery address
+    ├── restaurant/            # restaurant list + detail, opening hours
+    ├── menu/                  # menu, item options, price calculation
+    ├── cart/                  # the cart (offline, persisted)
+    ├── promotion/             # vouchers + discount rules
+    ├── checkout/              # ⭐ the meeting point — joins 6 features
+    ├── payment/               # payment gateways, deep links, returning to the app
+    └── order/                 # placing, listing, detail, tracking
 ```
 
 ---
 
-## 3. Bốn tầng và luật phụ thuộc
+## 3. The four layers and the dependency rules
 
 ```
 app/  ──────►  features/*  ──────►  shared/
@@ -145,48 +145,48 @@ app/  ──────►  features/*  ──────►  shared/
                     └──►  core/  ──────┘
 ```
 
-| Luật | Vì sao |
+| Rule | Why |
 |---|---|
-| Feature A chỉ import feature B qua `@features/b` (public API) | Đây là **luật số 1**. Không có nó, feature-first thoái hoá thành "thư mục đặt tên đẹp" sau vài sprint. |
-| `model/` không import React / React Native / navigation | Để test logic nghiệp vụ trong mili-giây, không cần render, không cần mock hệ điều hành. |
-| `shared/` và `core/` không import `features/` | Giữ đồ thị phụ thuộc không có chu trình; `core/` tái dùng được cho app khác. |
-| `features/` không import `app/` | `app/` biết mọi feature; chiều ngược lại thì không. |
-| Không import vòng | Import vòng gần như luôn là dấu hiệu ranh giới cắt sai chỗ. |
+| Feature A imports feature B only through `@features/b` (its public API) | This is **rule number 1**. Without it, feature-first degrades into "nicely named folders" within a few sprints. |
+| `model/` does not import React / React Native / navigation | So business logic can be tested in milliseconds, with no rendering and no OS mocking. |
+| `shared/` and `core/` do not import `features/` | Keeps the dependency graph acyclic; `core/` stays reusable in another app. |
+| `features/` does not import `app/` | `app/` knows every feature; the reverse is not allowed. |
+| No circular imports | A circular import is almost always a sign the boundary was drawn in the wrong place. |
 
-### Ép bằng máy, không bằng niềm tin
+### Enforced by a tool, not by good intentions
 
-Toàn bộ 5 luật trên được cài trong [`.dependency-cruiser.js`](.dependency-cruiser.js):
+All five rules above are encoded in [`.dependency-cruiser.js`](.dependency-cruiser.js):
 
 ```bash
 npm run arch:check
 ```
 
-> **Đây không phải lý thuyết.** Trong lúc viết repo này, rule `model-must-be-pure` đã bắt được một vi phạm thật: [`payment/model/payment-method.registry.ts`](src/features/payment/model/payment-method.registry.ts) lỡ import `Platform` từ React Native. Nó được sửa bằng cách chuyển việc đọc nền tảng sang [`payment/lib/current-platform.ts`](src/features/payment/lib/current-platform.ts), còn model nhận `platform` làm **tham số bắt buộc** — nhờ vậy test kiểm được nhánh iOS trên máy Android.
+> **This is not theoretical.** While writing this repo, the `model-must-be-pure` rule caught a real violation: [`payment/model/payment-method.registry.ts`](src/features/payment/model/payment-method.registry.ts) had imported `Platform` from React Native. The fix was to move the platform lookup into [`payment/lib/current-platform.ts`](src/features/payment/lib/current-platform.ts) and have the model take `platform` as a **required parameter** — which is what makes the iOS branch testable on an Android machine.
 
-Nên gắn lệnh này vào pre-commit hook và CI. Không ai nhớ nổi luật kiến trúc khi đang vội lúc 6h chiều thứ Sáu.
+Wire this command into a pre-commit hook and CI. Nobody remembers the architecture rules in a hurry at 6pm on a Friday.
 
 ---
 
-## 4. Giải phẫu một feature
+## 4. Anatomy of a feature
 
-Mọi feature đều theo cùng một khuôn. Ví dụ [`features/checkout/`](src/features/checkout/):
+Every feature follows the same shape. Take [`features/checkout/`](src/features/checkout/):
 
 ```
 features/checkout/
-├── model/           # ❶ Logic thuần TS — KHÔNG React, test được trong 1ms
+├── model/           # ❶ Pure TS logic — NO React, testable in 1ms
 │   ├── calc-order-total.ts
 │   ├── validate-checkout.ts
 │   └── __tests__/
-├── api/             # ❷ Gọi mạng + dịch DTO sang domain model
-├── store/           # ❸ Client state của feature (zustand)
-├── hooks/           # ❹ Cầu nối model ↔ UI, điều phối luồng
-├── components/      # ❺ UI mảnh, dùng trong feature
-├── screens/         # ❻ Màn hình — CHỈ compose, không chứa logic
-├── navigation/      # ❼ Route + ParamList của riêng feature
-└── index.ts         # ⭐ PUBLIC API — cửa duy nhất ra ngoài
+├── api/             # ❷ Network calls + translating DTOs into domain models
+├── store/           # ❸ The feature's client state (zustand)
+├── hooks/           # ❹ The bridge between model ↔ UI, flow orchestration
+├── components/      # ❺ Small UI pieces used inside the feature
+├── screens/         # ❻ Screens — composition ONLY, no logic
+├── navigation/      # ❼ The feature's own routes + ParamList
+└── index.ts         # ⭐ PUBLIC API — the only way in from outside
 ```
 
-### `index.ts` là thứ quyết định thành bại
+### `index.ts` is what decides whether this works
 
 ```ts
 // features/cart/index.ts
@@ -194,17 +194,17 @@ export {CartFab} from './components/CartFab';
 export {useCart, useCartBadge, useAddToCart} from './hooks/use-cart';
 export type {Cart, CartLine, AddToCartInput} from './model/types';
 
-// ⚠️ useCartStore KHÔNG được export.
+// ⚠️ useCartStore is NOT exported.
 ```
 
-Nếu feature khác chạm được vào store, sớm muộn sẽ có người gọi `useCartStore.setState(...)` từ màn checkout để "sửa nhanh một chút". Lúc đó mọi quy tắc trong `cart-rules.ts` bị đi vòng, và không ai còn dám khẳng định giỏ hàng luôn ở trạng thái hợp lệ.
+If another feature could reach the store, sooner or later somebody would call `useCartStore.setState(...)` from the checkout screen as a "quick little fix". At that point every rule in `cart-rules.ts` is bypassed, and nobody can claim the cart is always in a valid state any more.
 
-### Màn hình phải mỏng
+### Screens must stay thin
 
-Tiêu chuẩn tự đánh giá: **nếu một screen có `if` phức tạp hoặc phép tính về tiền, logic đó đang ở sai chỗ.**
+The yardstick: **if a screen has complicated `if`s or arithmetic about money, that logic is in the wrong place.**
 
 ```tsx
-// features/checkout/screens/CheckoutScreen.tsx — gần như không có logic
+// features/checkout/screens/CheckoutScreen.tsx — almost no logic
 const flow = useCheckoutFlow();
 const firstBlocker = flow.blockers[0];
 
@@ -218,40 +218,40 @@ const firstBlocker = flow.blockers[0];
 
 ---
 
-## 5. Quản lý state — phần quan trọng nhất
+## 5. State management — the most important part
 
-App này dùng **hai hệ thống state song song, mỗi hệ cho một loại dữ liệu khác nhau**. Đây là quyết định kiến trúc quan trọng nhất, và cũng là chỗ hầu hết codebase RN làm sai.
+This app runs **two parallel state systems, one for each kind of data**. It is the single most important architectural decision here, and the place most RN codebases get it wrong.
 
-### Nguyên tắc phân loại
+### How to classify
 
 | | **Server state** | **Client state** |
 |---|---|---|
-| Công cụ | TanStack Query | Zustand |
-| Đặc điểm | App **không sở hữu**, có thể cũ đi | App **sở hữu hoàn toàn** |
-| Ví dụ trong repo | nhà hàng, menu, đơn hàng, voucher, địa chỉ | giỏ hàng, phiên đăng nhập, nháp checkout, giao dịch đang chờ |
-| Cần gì | cache, refetch, retry, dedupe, invalidate | ghi nhanh, phản hồi tức thì, hoạt động offline |
+| Tool | TanStack Query | Zustand |
+| Traits | The app **does not own it**; it can go stale | The app **owns it outright** |
+| Examples in this repo | restaurants, menus, orders, vouchers, addresses | cart, session, checkout draft, pending transaction |
+| What it needs | cache, refetch, retry, dedupe, invalidate | fast writes, instant feedback, works offline |
 
-> **Sai lầm phổ biến nhất:** nhét danh sách nhà hàng vào một Zustand store. Bạn sẽ phải tự viết lại loading/error/cache/refetch/dedupe — tức là viết lại TanStack Query, nhưng đầy bug.
+> **The most common mistake:** putting the restaurant list into a Zustand store. You end up reimplementing loading/error/cache/refetch/dedupe by hand — i.e. rewriting TanStack Query, but buggy.
 
 ### Server state: TanStack Query
 
-Cấu hình tập trung ở [`core/api/query-client.ts`](src/core/api/query-client.ts). Ba quyết định đáng chú ý:
+Configured centrally in [`core/api/query-client.ts`](src/core/api/query-client.ts). Three decisions worth noting:
 
 ```ts
-// 1. Chỉ retry lỗi mạng/server. Retry lỗi 422 là vô nghĩa.
+// 1. Only retry network/server errors. Retrying a 422 is pointless.
 retry: (failureCount, error) => {
   if (error instanceof AppError && !error.isRetryable) return false;
   return failureCount < 2;
 },
 
-// 2. Mobile không có "focus cửa sổ" như web.
+// 2. Mobile has no "window focus" like the web.
 refetchOnWindowFocus: false,
 
-// 3. KHÔNG BAO GIỜ tự retry mutation — đặt đơn 2 lần là mất tiền thật.
+// 3. NEVER auto-retry a mutation — placing an order twice costs real money.
 mutations: { retry: false },
 ```
 
-**Query key factory** ([`order.keys.ts`](src/features/order/api/order.keys.ts)) — không bao giờ gõ tay mảng key:
+**Query key factory** ([`order.keys.ts`](src/features/order/api/order.keys.ts)) — never type a key array by hand:
 
 ```ts
 export const orderKeys = {
@@ -261,121 +261,121 @@ export const orderKeys = {
 };
 ```
 
-**Polling có điều kiện** ([`order.queries.ts`](src/features/order/api/order.queries.ts)) — kỹ thuật rất hữu ích cho màn theo dõi đơn:
+**Conditional polling** ([`order.queries.ts`](src/features/order/api/order.queries.ts)) — a very useful technique for an order tracking screen:
 
 ```ts
 refetchInterval: query => {
   const order = query.state.data;
-  // Đơn đang chạy -> hỏi lại mỗi 10s. Đơn đã xong -> ngừng hẳn.
+  // Order in progress -> re-ask every 10s. Order finished -> stop entirely.
   return order && isActiveOrder(order) ? 10_000 : false;
 },
 ```
 
-Để một con số cố định sẽ ngốn pin và 4G để hỏi lại mãi một đơn đã hoàn tất từ tuần trước.
+A fixed number would burn battery and mobile data re-asking about an order that completed last week.
 
 ### Client state: Zustand
 
-Bốn store trong app, và **quyết định persist của chúng khác nhau** — đây là điểm đáng học nhất:
+There are four stores in the app, and **their persistence decisions differ** — which is the most instructive part:
 
-| Store | Persist? | Vì sao |
+| Store | Persisted? | Why |
 |---|---|---|
-| [`cart.store`](src/features/cart/store/cart.store.ts) | ✅ MMKV | Mất giỏ hàng là mất công chọn món |
-| [`auth.store`](src/features/auth/store/auth.store.ts) | ✅ MMKV **mã hoá** | Token không nằm chung vùng với giỏ hàng |
-| [`payment.store`](src/features/payment/store/payment.store.ts) | ✅ **BẮT BUỘC** | Xem [mục 8](#8-luồng-thanh-toán--phần-khó-nhất-trên-mobile) — liên quan tới tiền |
-| [`checkout.store`](src/features/checkout/store/checkout.store.ts) | ❌ | Voucher có thể hết hạn, hình thức thanh toán có thể không còn hợp lệ. Khôi phục lựa chọn cũ chỉ gây nhầm lẫn |
+| [`cart.store`](src/features/cart/store/cart.store.ts) | ✅ MMKV | Losing the cart means re-picking every item |
+| [`auth.store`](src/features/auth/store/auth.store.ts) | ✅ **encrypted** MMKV | Tokens do not share a partition with the cart |
+| [`payment.store`](src/features/payment/store/payment.store.ts) | ✅ **MANDATORY** | See [section 8](#8-the-payment-flow--the-hardest-part-on-mobile) — money is involved |
+| [`checkout.store`](src/features/checkout/store/checkout.store.ts) | ❌ | The voucher may have expired and the payment method may no longer be valid. Restoring an old choice only causes confusion |
 
-> **Quy tắc rút ra:** chỉ persist thứ mà mất đi sẽ làm người dùng khó chịu **hoặc** gây sai lệch dữ liệu. Persist mọi thứ "cho chắc" tạo ra một lớp bug riêng về dữ liệu cũ.
+> **The rule of thumb:** only persist what would annoy the user to lose **or** what would corrupt data if lost. Persisting everything "just in case" creates its own class of stale-data bugs.
 
-### Store gần như không chứa logic
+### The store contains almost no logic
 
 ```ts
-// cart.store.ts — mỗi action chỉ gọi một hàm thuần rồi lưu kết quả
+// cart.store.ts — each action calls one pure function and saves the result
 add: input => set({cart: rules.addLine(get().cart, input)}),
 remove: lineId => set(state => ({cart: rules.removeLine(state.cart, lineId)})),
 ```
 
-Toàn bộ quy tắc nằm trong [`cart-rules.ts`](src/features/cart/model/cart-rules.ts) — hàm thuần, và đó là lý do có **15 test** cho giỏ hàng chạy trong vài mili-giây mà không cần dựng zustand hay render gì cả.
+All of the rules live in [`cart-rules.ts`](src/features/cart/model/cart-rules.ts) — pure functions, which is why there are **15 tests** for the cart that run in milliseconds without standing up zustand or rendering anything.
 
-### ⚠️ Selector nguyên thuỷ — chi tiết nhỏ, ảnh hưởng lớn
+### ⚠️ Primitive selectors — a small detail with a large effect
 
 ```ts
-// ✅ ĐÚNG — trả về một con số. Object.is so sánh chính xác.
+// ✅ RIGHT — returns a number. Object.is compares it correctly.
 export const selectItemCount = (state: CartState): number => rules.countItems(state.cart);
 useCartStore(selectItemCount);
 
-// ❌ SAI — tạo object MỚI mỗi lần render
+// ❌ WRONG — builds a NEW object on every render
 useCartStore(s => ({count: ..., total: ...}));
 ```
 
-Zustand so sánh bằng `Object.is`. Selector trả về object mới ⇒ luôn khác ⇒ re-render ở **mọi** thay đổi của store. Với badge giỏ hàng hiện ở mọi màn hình, sai lầm này khiến cả app render lại mỗi lần user gõ một ký tự ghi chú.
+Zustand compares with `Object.is`. A selector returning a new object is always different ⇒ a re-render on **every** store change. With the cart badge visible on every screen, that mistake re-renders the whole app each time the user types a character into a note.
 
-Khi cần nhiều field, dùng `useShallow` ([`use-auth.ts`](src/features/auth/hooks/use-auth.ts)).
+When you need several fields, use `useShallow` ([`use-auth.ts`](src/features/auth/hooks/use-auth.ts)).
 
-### Ghép hai loại state với nhau
+### Joining the two kinds of state
 
-Mẫu hình dùng đi dùng lại — [`use-delivery-address.ts`](src/features/address/hooks/use-delivery-address.ts):
+A pattern used again and again — [`use-delivery-address.ts`](src/features/address/hooks/use-delivery-address.ts):
 
 ```ts
-// Zustand giữ "id đang chọn", TanStack Query giữ nội dung thật
+// Zustand holds "which id is selected", TanStack Query holds the real content
 const {data: addresses} = useAddresses();                    // server state
 const selectedId = useSelectedAddressStore(s => s.selectedAddressId); // client state
 
-// Xử lý cả trường hợp id đã chọn không còn tồn tại
+// Handles the case where the selected id no longer exists
 return chosen ?? addresses.find(a => a.isDefault) ?? addresses[0] ?? null;
 ```
 
-**Chỉ lưu ID, không lưu cả object.** Nếu lưu cả object, người dùng sửa địa chỉ trên web xong quay lại app sẽ thấy địa chỉ cũ mãi mãi — vì bản sao trong store không ai làm mới cả.
+**Store only the ID, not the whole object.** If you stored the whole object, a user who edits the address on the web and comes back would see the old address forever — because nothing refreshes the copy in the store.
 
-### State cục bộ vẫn là `useState`
+### Local state is still `useState`
 
-Không phải mọi thứ đều cần store. Chữ đang gõ trong ô tìm kiếm, topping đang chọn dở trong màn chi tiết món — những thứ chỉ sống trong một màn hình thì `useState` là đúng chỗ. Đưa vào store toàn cục chỉ tổ phải nhớ dọn dẹp và sẽ rò rỉ sang lần mở sau.
+Not everything needs a store. The text being typed into the search box, the toppings half-selected on the item detail screen — things that only live inside one screen belong in `useState`. Putting them in a global store just means remembering to clean them up, and they leak into the next time you open it.
 
 ---
 
 ## 6. Mock API & dummy data
 
-Toàn bộ backend được giả lập **trong app**, tại [`core/api/mock/`](src/core/api/mock/).
+The entire backend is simulated **inside the app**, in [`core/api/mock/`](src/core/api/mock/).
 
-### Đổi sang backend thật = đổi 1 dòng
+### Switching to a real backend = changing 1 line
 
 ```ts
 // core/config/env.ts
-useMockApi: false,   // ← xong. Không file feature nào phải sửa.
+useMockApi: false,   // ← done. No feature file changes.
 ```
 
-Feature chỉ biết `http.get('/restaurants')`. Nó không biết dữ liệu đến từ đâu.
+A feature only knows `http.get('/restaurants')`. It has no idea where the data comes from.
 
-### Mock server có gì mà file JSON tĩnh không có
+### What the mock server has that a static JSON file does not
 
 | | |
 |---|---|
-| **Độ trễ mạng** | 250–700ms ngẫu nhiên → skeleton và trạng thái loading được kiểm chứng thật |
-| **Mã lỗi HTTP** | 404 / 409 / 422 → `ErrorView`, retry, các nhánh thất bại đều chạy được |
-| **Trạng thái thay đổi** | Đặt đơn xong, đơn xuất hiện trong lịch sử |
-| **Nghiệp vụ thật** | Idempotency, kiểm tra voucher, chặn món hết hàng, đơn tối thiểu |
-| **Vòng đời đơn hàng** | Đơn tự chạy `CONFIRMED → PREPARING → DELIVERING → COMPLETED`, mỗi bước 45 giây |
+| **Network latency** | A random 250–700ms → skeletons and loading states get genuinely exercised |
+| **HTTP error codes** | 404 / 409 / 422 → `ErrorView`, retry and the failure branches all run |
+| **Mutable state** | Place an order and it shows up in the history |
+| **Real business logic** | Idempotency, voucher checks, blocking sold-out items, minimum order |
+| **Order lifecycle** | Orders advance themselves `CONFIRMED → PREPARING → DELIVERING → COMPLETED`, one step every 45 seconds |
 
-### Dữ liệu mẫu
+### Sample data
 
-6 nhà hàng (có 1 quán **tạm ngưng nhận đơn**), 11 món ăn với các nhóm tuỳ chọn bắt buộc/tuỳ chọn (có 1 món **hết hàng**), 4 voucher (PERCENT có trần / FIXED / FREESHIP / **đã hết hạn**), 2 địa chỉ giao hàng.
+6 restaurants (one of them **paused for new orders**), 11 dishes with required and optional option groups (one of them **sold out**), 4 vouchers (PERCENT with a cap / FIXED / FREESHIP / **expired**), 2 delivery addresses.
 
-Các trường hợp biên được cài sẵn có chủ đích — để bạn thấy UI xử lý chúng ra sao mà không phải tự dựng dữ liệu.
+The edge cases are seeded on purpose — so you can see how the UI handles them without building the data yourself.
 
-### Server là nguồn sự thật về tiền
+### The server is the source of truth for money
 
-[`handlers.ts`](src/core/api/mock/handlers.ts) **tính lại toàn bộ giá** từ `menuItemId` + `optionIds`, không tin con số client gửi lên:
+[`handlers.ts`](src/core/api/mock/handlers.ts) **recomputes every price** from `menuItemId` + `optionIds` and does not trust the numbers the client sends:
 
 ```ts
 const unitPrice = menuItem.basePrice + selected.reduce((s, o) => s + o.priceDelta, 0);
 ```
 
-Nếu tin client, ai đó sửa request là mua được pizza giá 0đ.
+If you trusted the client, anyone editing the request could buy a pizza for 0đ.
 
-Client **vẫn** tính song song ở [`calc-order-total.ts`](src/features/checkout/model/calc-order-total.ts) — trùng lặp **có chủ đích**, để tổng tiền đổi ngay khi bật/tắt voucher thay vì chờ 300ms round-trip. Khi hai bên lệch nhau, **số của server thắng** ([`use-checkout-draft.ts`](src/features/checkout/hooks/use-checkout-draft.ts)).
+The client **still** computes in parallel in [`calc-order-total.ts`](src/features/checkout/model/calc-order-total.ts) — the duplication is **deliberate**, so the total updates the moment a voucher is toggled instead of waiting for a 300ms round trip. When the two disagree, **the server's numbers win** ([`use-checkout-draft.ts`](src/features/checkout/hooks/use-checkout-draft.ts)).
 
-### DTO ≠ Domain model
+### DTO ≠ domain model
 
-[`core/api/contracts.ts`](src/core/api/contracts.ts) khai báo hình dạng JSON của server (trong dự án thật thì file này được sinh từ OpenAPI). Mỗi feature có một mapper dịch sang model của mình:
+[`core/api/contracts.ts`](src/core/api/contracts.ts) declares the server's JSON shapes (in a real project this file would be generated from OpenAPI). Every feature has a mapper translating them into its own model:
 
 ```ts
 // features/restaurant/api/restaurant.api.ts
@@ -386,9 +386,9 @@ const toRestaurant = (dto: RestaurantDto): Restaurant => ({
 });
 ```
 
-Nghe có vẻ thừa, nhưng nó mua cho bạn ba thứ: backend đổi tên field thì sửa **1 mapper** thay vì 30 component; app có kiểu chặt hơn server; và ghép/bỏ field tuỳ nhu cầu UI mà không phải xin backend đổi API.
+It sounds like boilerplate, but it buys you three things: when the backend renames a field you fix **1 mapper** instead of 30 components; the app gets tighter types than the server; and you can merge or drop fields to suit the UI without asking backend to change the API.
 
-### `Money` là branded type
+### `Money` is a branded type
 
 ```ts
 export type Money = number & {readonly __brand: 'Money'};
@@ -398,13 +398,13 @@ export const money = (amount: number): Money => {
 };
 ```
 
-Tiền lưu bằng **số nguyên VND**. `0.1 + 0.2 !== 0.3` trong JS — với tiền, sai số đó biến thành lệch đối soát và khiếu nại của khách. Branded type khiến `Money` không thể vô tình trộn với `number` thường, và chi phí lúc runtime là **0 byte** (kiểu bị xoá khi compile).
+Money is stored as **integer VND**. `0.1 + 0.2 !== 0.3` in JS — with money, that rounding error turns into reconciliation mismatches and customer complaints. The branded type stops `Money` being mixed up with a plain `number` by accident, and it costs **0 bytes** at runtime (the type is erased at compile time).
 
 ---
 
-## 7. Các feature nói chuyện với nhau
+## 7. How features talk to each other
 
-### Cách A — Đồng bộ, cần dữ liệu: import qua public API
+### Option A — Synchronous, needs data: import through the public API
 
 ```ts
 // features/checkout/hooks/use-checkout-draft.ts
@@ -415,15 +415,15 @@ import {calcDiscount}       from '@features/promotion';
 import {usePlaceOrder}      from '@features/order';
 ```
 
-`checkout` phụ thuộc 5 feature — **bình thường và đúng**, vì checkout tồn tại chính là để ghép chúng lại. Chiều ngược lại thì tuyệt đối không: `cart` không được import `checkout`.
+`checkout` depends on 5 features — **normal and correct**, because checkout exists precisely to join them together. The reverse is never allowed: `cart` must not import `checkout`.
 
-### Cách B — Bất đồng bộ, nhiều bên quan tâm: event bus
+### Option B — Asynchronous, several interested parties: the event bus
 
-Toàn bộ việc nối dây nằm ở **một file duy nhất**: [`app/bootstrap/register-event-handlers.ts`](src/app/bootstrap/register-event-handlers.ts).
+All of the wiring lives in **one single file**: [`app/bootstrap/register-event-handlers.ts`](src/app/bootstrap/register-event-handlers.ts).
 
 ```ts
 appEventBus.on('order:placed', ({orderId, orderCode}) => {
-  clearCart();              // ← giỏ hàng được xoá TẠI ĐÂY
+  clearCart();              // ← the cart is cleared HERE
   resetCheckoutDraft();
   queryClient.invalidateQueries({queryKey: orderKeys.lists()});
 });
@@ -432,54 +432,54 @@ appEventBus.on('auth:logged-out', () => {
   clearCart();
   resetCheckoutDraft();
   resetSelectedAddress();
-  queryClient.clear();      // ← nếu quên, user tiếp theo thấy đơn của user trước
+  queryClient.clear();      // ← forget this and the next user sees the previous user's orders
 });
 ```
 
-Hãy để ý điều **KHÔNG** xảy ra trong các feature:
+Notice what does **NOT** happen inside the features:
 
-- `payment` không gọi `cart.clear()`. Nó chỉ phát `'payment:succeeded'`.
-- `auth` không gọi `resetCheckoutDraft()`. Nó chỉ phát `'auth:logged-out'`.
-- `order` không biết ai quan tâm tới đơn hàng mới.
+- `payment` does not call `cart.clear()`. It only emits `'payment:succeeded'`.
+- `auth` does not call `resetCheckoutDraft()`. It only emits `'auth:logged-out'`.
+- `order` does not know who cares about a new order.
 
-Kết quả: mỗi feature **xoá đi được** mà không làm vỡ feature khác. Muốn thêm hành vi khi thanh toán thành công (analytics, hiện popup đánh giá, cộng điểm)? Thêm một dòng ở file này. Không đụng vào `payment`.
+The result: any feature can be **deleted** without breaking the others. Want new behaviour when a payment succeeds (analytics, a rating prompt, loyalty points)? Add a line to this file. Do not touch `payment`.
 
-**Đánh đổi cần biết:** luồng chạy khó lần dấu hơn gọi hàm trực tiếp — bạn không "Go to definition" từ nơi phát sang nơi nhận được. Đó là lý do số lượng event phải **ít** (6 event) và tập trung hết ở một file.
+**The trade-off to know about:** the flow is harder to trace than a direct call — you cannot "Go to definition" from the emitter to the handler. That is why the number of events must stay **small** (6 of them) and all of them live in one file.
 
-Quy ước đặt tên: `'<feature>:<chuyện đã xảy ra ở thì quá khứ>'`. Thì quá khứ rất quan trọng — event mô tả **sự thật đã xảy ra**, không phải mệnh lệnh. `'payment:succeeded'` đúng; `'clearCart'` sai (đó là lệnh, và nó buộc payment phải biết cart tồn tại).
+Naming convention: `'<feature>:<what happened, in the past tense>'`. The past tense matters — an event describes **a fact that happened**, not a command. `'payment:succeeded'` is right; `'clearCart'` is wrong (that is a command, and it forces payment to know cart exists).
 
-### Cách C — Đảo ngược phụ thuộc
+### Option C — Dependency inversion
 
-`http-client` (core) cần token, nhưng **core không được import feature**. Giải pháp ở [`core/api/auth-token.ts`](src/core/api/auth-token.ts):
+`http-client` (core) needs the token, but **core may not import a feature**. The solution is in [`core/api/auth-token.ts`](src/core/api/auth-token.ts):
 
 ```ts
-// core định nghĩa "khe cắm"
+// core defines the "socket"
 export const authTokenBridge = {
   setTokenProvider(next: () => string | null) { provider = next; },
   getToken: () => provider(),
 };
 
-// app/bootstrap cắm feature vào — chỉ app/ được phép biết cả hai
+// app/bootstrap plugs the feature in — only app/ is allowed to know about both
 authTokenBridge.setTokenProvider(getAccessToken);
 authTokenBridge.setUnauthorizedHandler(forceLogout);
 ```
 
-### Tránh phụ thuộc vòng
+### Avoiding dependency cycles
 
-`restaurant` → `menu` (màn chi tiết nhà hàng nhúng `<MenuSectionList/>`). Nên `menu` **không được** import `restaurant`. Tên nhà hàng mà `menu` cần được truyền qua **route param**:
+`restaurant` → `menu` (the restaurant detail screen embeds `<MenuSectionList/>`). So `menu` **must not** import `restaurant`. The restaurant name that `menu` needs is passed through a **route param**:
 
 ```ts
 // features/menu/navigation/menu.routes.ts
 [MENU_ROUTES.ItemDetail]: {
   itemId: string;
   restaurantId: string;
-  restaurantName: string;  // ← truyền vào, không đi hỏi feature restaurant
+  restaurantName: string;  // ← passed in, not fetched from the restaurant feature
 };
 ```
 
-Tương tự, màn **chọn voucher** thuộc `checkout` chứ không thuộc `promotion` — vì nó ghi vào checkout store. Đặt ở `promotion` sẽ tạo phụ thuộc ngược.
+Likewise, the **voucher picker** screen belongs to `checkout` rather than `promotion` — because it writes into the checkout store. Putting it in `promotion` would create a backwards dependency.
 
-### Navigation: mỗi feature tự khai báo route của mình
+### Navigation: each feature declares its own routes
 
 ```ts
 // features/order/navigation/order.routes.ts
@@ -487,16 +487,16 @@ export type OrderStackParamList = {
   OrderDetail: {orderId: string; highlightPayment?: boolean};
 };
 
-// app/navigation/types.ts — chỉ GHÉP lại
+// app/navigation/types.ts — only JOINS them
 export type RootStackParamList =
   & AuthStackParamList & RestaurantStackParamList & MenuStackParamList
   & CartStackParamList & CheckoutStackParamList & AddressStackParamList
   & PaymentStackParamList & OrderStackParamList;
 ```
 
-Thêm màn hình mới **không cần sửa file type tập trung** — khai báo trong feature là nó tự có mặt.
+Adding a new screen **requires no edit to a central type file** — declare it in the feature and it shows up here automatically.
 
-**Global type augmentation** gỡ nút thắt "feature không được import app/":
+**Global type augmentation** unties the "a feature may not import app/" knot:
 
 ```ts
 declare global {
@@ -506,47 +506,47 @@ declare global {
 }
 ```
 
-Nhờ nó, `useNavigation()` **không tham số** vẫn có kiểu đầy đủ ở mọi nơi trong feature.
+Thanks to it, `useNavigation()` **with no type argument** is still fully typed everywhere inside a feature.
 
 ---
 
-## 8. Luồng thanh toán — phần khó nhất trên mobile
+## 8. The payment flow — the hardest part on mobile
 
-Đây là lý do `payment` phải là một feature riêng có store persist, chứ không phải vài dòng trong `CheckoutScreen`.
+This is why `payment` has to be its own feature with a persisted store, rather than a few lines inside `CheckoutScreen`.
 
-### Vấn đề
+### The problem
 
-Khi người dùng bấm thanh toán MoMo, **app bị đẩy ra nền**. Android trên máy RAM thấp **giết app** trong lúc đó khá thường xuyên. Khi họ quay lại, app khởi động **lại từ đầu** — mọi state trong RAM đã mất.
+When the user taps pay with MoMo, **the app is pushed to the background**. Android on a low-RAM device **kills the app** while they are away fairly often. When they come back, the app starts **from scratch** — all in-memory state is gone.
 
-Nếu không persist: app mở lên sạch trơn, không biết có giao dịch nào đang chờ. Người dùng đã bị trừ tiền nhưng app hiển thị giỏ hàng như chưa có gì xảy ra.
+Without persistence: the app opens blank, unaware that a transaction is pending. The user has been charged but the app shows the cart as if nothing happened.
 
-### Ba đường quay lại app
+### Three ways back into the app
 
-[`use-payment-return.ts`](src/features/payment/hooks/use-payment-return.ts) xử lý cả ba. Bỏ sót đường nào cũng để lại một nhóm người dùng mắc kẹt ở màn "đang xử lý" vĩnh viễn:
+[`use-payment-return.ts`](src/features/payment/hooks/use-payment-return.ts) handles all three. Missing any one of them leaves a group of users stuck on the "processing" screen forever:
 
-| # | Đường | Khi nào | Tín hiệu |
+| # | Route | When | Signal |
 |---|---|---|---|
-| 1 | **Deep link** | User bấm "Quay lại ứng dụng" trong MoMo | `foodgo://payment/return` |
-| 2 | **Foreground** | User tự bấm Back, hoặc chuyển app bằng multitask | `AppState → 'active'` |
-| 3 | **Cold start** | Hệ điều hành đã giết app khi ở nền | `pendingIntentId` đọc từ đĩa |
+| 1 | **Deep link** | The user taps "Quay lại ứng dụng" inside MoMo | `foodgo://payment/return` |
+| 2 | **Foreground** | The user presses Back themselves, or switches apps via the multitasker | `AppState → 'active'` |
+| 3 | **Cold start** | The OS killed the app while it was backgrounded | `pendingIntentId` read from disk |
 
-### Thứ tự không được phép đổi
+### The order that must not change
 
 ```ts
 // use-pay.ts
-setPending({intentId, orderId});   // ⭐ GHI XUỐNG ĐĨA TRƯỚC
-const result = await provider.pay(intent);   // ← có thể rời app NGAY LẬP TỨC
+setPending({intentId, orderId});   // ⭐ WRITE TO DISK FIRST
+const result = await provider.pay(intent);   // ← may leave the app IMMEDIATELY
 ```
 
-`provider.pay()` gọi `Linking.openURL()` và app rời đi ngay. Nếu ghi sau, dòng code đó có thể không bao giờ chạy.
+`provider.pay()` calls `Linking.openURL()` and the app leaves right away. Written afterwards, that line may never run.
 
-> **Quy tắc tổng quát:** mọi thứ cần sống sót qua việc rời app phải được ghi xuống đĩa **trước khi** rời đi.
+> **The general rule:** anything that has to survive leaving the app must be written to disk **before** leaving.
 
-### Server là nguồn sự thật, luôn luôn
+### The server is the source of truth, always
 
 ```ts
-// Không bao giờ tin tham số trên deep link —
-// ai cũng gõ được foodgo://payment/return?status=success vào trình duyệt.
+// Never trust the deep link's parameters —
+// anyone can type foodgo://payment/return?status=success into a browser.
 for (let attempt = 0; attempt < 8; attempt++) {
   const intent = await paymentApi.getIntent(intentId);
   if (intent.status === 'PAID') { ... }
@@ -554,43 +554,43 @@ for (let attempt = 0; attempt < 8; attempt++) {
 }
 ```
 
-Hỏi **nhiều lần**: webhook từ cổng thanh toán tới backend có thể chậm hơn việc người dùng quay lại app vài giây. Hỏi một lần rồi kết luận "thất bại" là sai lầm kinh điển.
+Ask **repeatedly**: the gateway's webhook to the backend can arrive a few seconds later than the user returns to the app. Asking once and concluding "failed" is the classic mistake.
 
-Hết lượt hỏi mà vẫn `PENDING`? **Không xoá** `pendingIntentId` — giữ lại để lần sau mở app còn hỏi tiếp. Thà hỏi thừa còn hơn mất dấu một khoản tiền.
+Out of attempts and still `PENDING`? **Do not clear** `pendingIntentId` — keep it so the next app launch can ask again. Better to ask redundantly than to lose track of someone's money.
 
-### Chặn back khi đang thanh toán
+### Blocking back during payment
 
-[`use-back-handler-guard.ts`](src/features/payment/hooks/use-back-handler-guard.ts) chặn **cả hai** cơ chế — quên một cái là user vẫn thoát được:
+[`use-back-handler-guard.ts`](src/features/payment/hooks/use-back-handler-guard.ts) blocks **both** mechanisms — forget one and the user can still escape:
 
 ```ts
 BackHandler.addEventListener('hardwareBackPress', () => true);  // Android
-navigation.addListener('beforeRemove', e => e.preventDefault()); // vuốt/header
+navigation.addListener('beforeRemove', e => e.preventDefault()); // swipe/header
 ```
 
-### Thêm cổng thanh toán mới = thêm 1 thư mục
+### Adding a new gateway = adding 1 folder
 
 ```
 providers/
-├── provider.types.ts    # ⭐ interface chung
-├── momo/                # chuyển sang app khác
-├── vnpay/               # mở trình duyệt
-├── card/                # sheet ngay trong app (Stripe)
-└── cod/                 # Null Object — không có gì để mở
+├── provider.types.ts    # ⭐ the shared interface
+├── momo/                # redirects to another app
+├── vnpay/               # opens a browser
+├── card/                # a sheet inside the app (Stripe)
+└── cod/                 # Null Object — nothing to open
 ```
 
 ```ts
 const PROVIDERS: Record<PaymentMethod, PaymentProvider> = {...};
 ```
 
-Dùng `Record` chứ không phải object thường: thêm giá trị vào union `PaymentMethod` mà quên viết provider thì **TypeScript báo lỗi biên dịch ngay**. Compiler làm thay việc review.
+`Record` rather than a plain object: add a value to the `PaymentMethod` union and forget to write its provider and **TypeScript fails the build**. The compiler does the review for you.
 
-Chú ý `cod.provider.ts` — một "provider rỗng". Tiền mặt chẳng có cổng thanh toán nào, nhưng ta vẫn tạo provider cho nó thay vì viết `if (method === 'COD')` trong màn checkout. Kết quả: **mọi phương thức đi qua cùng một đường dẫn code**, không có nhánh đặc biệt nào để quên xử lý.
+Note `cod.provider.ts` — an "empty provider". Cash has no gateway at all, but we still give it a provider instead of writing `if (method === 'COD')` in the checkout screen. The result: **every method goes down the same code path**, with no special branch left unhandled.
 
-### Thử luồng trong bản demo
+### Trying the flow in the demo
 
-Màn `PaymentProcessing` có khu vực **🧪 Mô phỏng** với hai nút "thành công" / "thất bại". Chúng thay cho việc bạn bấm xác nhận bên trong app MoMo. Ở production, kết quả về backend qua webhook — app **không có** endpoint nào để tự nói "tôi đã trả tiền rồi".
+The `PaymentProcessing` screen has a **🧪 simulation** area with "succeed" / "fail" buttons. They stand in for confirming inside the MoMo app. In production the result reaches the backend via a webhook — the app has **no** endpoint for telling it "I have paid".
 
-Thử deep link thật không cần cổng thanh toán:
+Testing a real deep link without a payment gateway:
 
 ```bash
 xcrun simctl openurl booted "foodgo://payment/return"                  # iOS
@@ -599,89 +599,89 @@ adb shell am start -a android.intent.action.VIEW -d "foodgo://payment/return"  #
 
 ---
 
-## 9. Thêm một feature mới
+## 9. Adding a new feature
 
-Ví dụ thêm `review` (đánh giá đơn hàng):
+Say you are adding `review` (rating an order):
 
 ```bash
 mkdir -p src/features/review/{model/__tests__,api,components,screens,navigation}
 ```
 
-1. **`model/`** trước — kiểu dữ liệu + quy tắc nghiệp vụ, viết test luôn.
+1. **`model/`** first — types + business rules, with tests written alongside.
    ```ts
    export const canReviewOrder = (order: {status: string; reviewedAt: string | null}) =>
      order.status === 'COMPLETED' && order.reviewedAt === null;
    ```
-2. **`api/`** — thêm DTO vào `core/api/contracts.ts`, route vào `mock/handlers.ts`, viết mapper + query key factory + hook query.
-3. **`navigation/review.routes.ts`** — route name + `ReviewStackParamList`.
-4. **`components/` + `screens/`** — UI mỏng.
-5. **`index.ts`** — export **tối thiểu**. Mặc định là không export; chỉ mở ra khi có feature khác thật sự cần.
-6. Thêm `ReviewStackParamList` vào `app/navigation/types.ts` và đăng ký screen trong `RootNavigator`.
-7. Nếu cần phản ứng với event: thêm handler vào `app/bootstrap/register-event-handlers.ts`.
+2. **`api/`** — add the DTO to `core/api/contracts.ts` and the route to `mock/handlers.ts`, then write the mapper + query key factory + query hook.
+3. **`navigation/review.routes.ts`** — route names + `ReviewStackParamList`.
+4. **`components/` + `screens/`** — thin UI.
+5. **`index.ts`** — export **as little as possible**. The default is to export nothing; open it up only when another feature genuinely needs something.
+6. Add `ReviewStackParamList` to `app/navigation/types.ts` and register the screen in `RootNavigator`.
+7. If it needs to react to events: add a handler to `app/bootstrap/register-event-handlers.ts`.
 8. `npm run arch:check && npm run typecheck && npm test`.
 
-### Checklist review code
+### Code review checklist
 
-- [ ] Có `if` nghiệp vụ hoặc phép tính tiền nào nằm trong `screens/` không? → đưa về `model/`
-- [ ] `model/` có import React/RN không? → `npm run arch:check` sẽ bắt
-- [ ] `index.ts` có export store không? → gần như luôn là sai
-- [ ] Có import `@features/x/...` (đường dẫn sâu) không? → phải qua `@features/x`
-- [ ] Store mới có persist không? Nếu có, đã đặt `version` + `migrate` chưa?
-- [ ] Selector có trả về object mới mỗi lần render không? → dùng selector nguyên thuỷ hoặc `useShallow`
+- [ ] Any business `if` or money arithmetic sitting in `screens/`? → move it into `model/`
+- [ ] Does `model/` import React/RN? → `npm run arch:check` will catch it
+- [ ] Does `index.ts` export a store? → almost always wrong
+- [ ] Any `@features/x/...` (deep path) imports? → they must go through `@features/x`
+- [ ] Is the new store persisted? If so, does it set `version` + `migrate`?
+- [ ] Does a selector return a new object on every render? → use a primitive selector or `useShallow`
 
 ---
 
-## 10. Kiểm thử
+## 10. Testing
 
 ```bash
 npm test
 ```
 
-**74 test, 8 suite, chạy trong ~0,4 giây** — vì tất cả đều test hàm thuần trong `model/`, không render component nào.
+**74 tests, 8 suites, running in ~0.4 seconds** — because they all test pure functions in `model/` and render no components.
 
-| Suite | Test | Nội dung |
+| Suite | Tests | Covers |
 |---|---|---|
-| `cart-rules` | 15 | gộp dòng trùng, đảo thứ tự option, đổi nhà hàng, xoá dòng cuối |
-| `voucher-rules` | 13 | trần giảm giá, hết hạn, sai nhà hàng, không giảm quá tiền hàng |
-| `validate-options` | 11 | nhóm bắt buộc, maxSelect, không mutate đầu vào |
-| `checkout` | 10 | tổng không âm, thứ tự ưu tiên lỗi, số tiền còn thiếu |
-| `order-rules` | 9 | quy tắc huỷ đơn, phân loại đơn, giờ giao dự kiến |
-| `availability` | 9 | quán mở xuyên đêm, biên giờ mở/đóng, tạm ngưng |
-| `calc-item-price` | 8 | cộng topping, option không tồn tại, số lượng không hợp lệ |
-| `payment-method.registry` | 5 | hạn mức COD, tự chuyển phương thức khi vượt hạn mức |
+| `cart-rules` | 15 | merging duplicate lines, option order, switching restaurant, removing the last line |
+| `voucher-rules` | 13 | the discount cap, expiry, wrong restaurant, never discounting past the item total |
+| `validate-options` | 11 | required groups, maxSelect, not mutating the input |
+| `checkout` | 10 | non-negative totals, blocker priority order, the shortfall amount |
+| `order-rules` | 9 | cancellation rules, order classification, estimated delivery time |
+| `availability` | 9 | overnight opening, the open/close boundaries, being paused |
+| `calc-item-price` | 8 | adding toppings, unknown options, invalid quantities |
+| `payment-method.registry` | 5 | the COD limit, switching method automatically when it is exceeded |
 
-### Mẹo khiến test không mong manh
+### The trick that keeps tests from being flaky
 
-Mọi hàm phụ thuộc thời gian đều nhận `now` làm **tham số**, không gọi `Date.now()` bên trong:
+Every time-dependent function takes `now` as a **parameter** instead of calling `Date.now()` inside:
 
 ```ts
 export const getAvailability = (restaurant, now: Date = new Date()) => {...}
 ```
 
-Nhờ vậy test kiểm được ca "quán mở xuyên đêm lúc 1 giờ sáng" mà không cần mock đồng hồ hệ thống, và test không đỏ sau Tết.
+That lets the tests cover "open overnight, at 1am" without mocking the system clock, and keeps them from turning red after a holiday.
 
 ---
 
-## 11. Những gì chưa làm
+## 11. What is deliberately missing
 
-Repo này tập trung vào **kiến trúc và luồng nghiệp vụ**, nên các phần sau cố tình để trống:
+This repo focuses on **architecture and business flows**, so the following are intentionally left out:
 
-| Chưa có | Ghi chú |
+| Missing | Notes |
 |---|---|
-| Thư mục `android/` và `ios/` | Xem [mục 1](#1-chạy-thử) để ghép vào project RN mới. **Chưa từng chạy trên máy thật/giả lập** — đã kiểm chứng bằng `tsc`, `jest`, `depcruise` |
-| Theo dõi tài xế realtime | Sẽ là feature `order-tracking` riêng: WebSocket + bản đồ. Tách khỏi `order` vì bản chất khác hẳn |
-| Push notification | Feature `notification` với `services/push-handler.ts`; phần **route theo payload** thuộc về feature, không phải `core` |
-| Tìm kiếm nâng cao | Hiện lọc ở client. Cần feature `search` riêng khi có gợi ý + lịch sử |
-| Đánh giá, ví, điểm thưởng | Cùng khuôn mẫu, xem [mục 9](#9-thêm-một-feature-mới) |
-| Hàng đợi offline cho mutation | `core/network/offline-queue.ts`. Hiện `cart` đã chạy offline hoàn toàn, nhưng đặt đơn thì cần mạng |
-| Dark mode | Token màu đã tập trung ở `shared/theme/colors.ts`, nên chỉ cần thêm một bảng màu tối |
-| Test component | Chủ ý: test `model/` cho giá trị cao nhất trên mỗi giây chạy. Bước tiếp theo hợp lý là E2E bằng Maestro cho luồng đặt hàng |
+| The `android/` and `ios/` folders | See [section 1](#1-running-it) for grafting it onto a fresh RN project. **Never run on a real device or simulator** — verified with `tsc`, `jest` and `depcruise` |
+| Real-time driver tracking | Would be its own `order-tracking` feature: WebSocket + a map. Kept out of `order` because its nature is completely different |
+| Push notifications | A `notification` feature with `services/push-handler.ts`; the **routing by payload** part belongs to the feature, not to `core` |
+| Advanced search | Currently filtered on the client. A separate `search` feature is warranted once there are suggestions + history |
+| Reviews, wallet, loyalty points | Same template — see [section 9](#9-adding-a-new-feature) |
+| An offline mutation queue | `core/network/offline-queue.ts`. Today `cart` already works fully offline, but placing an order needs the network |
+| Dark mode | The colour tokens are already centralised in `shared/theme/colors.ts`, so it only needs a second palette |
+| Component tests | Deliberate: `model/` tests give the most value per second of runtime. The sensible next step is E2E with Maestro for the ordering flow |
 
 ---
 
-## Nếu app của bạn còn nhỏ
+## If your app is still small
 
-**Đừng dựng đủ 7 thư mục con cho mỗi feature ngay từ đầu.** Khởi động gọn:
+**Do not build all 7 subfolders for every feature on day one.** Start lean:
 
 ```
 features/cart/
@@ -692,6 +692,6 @@ features/cart/
 └── index.ts
 ```
 
-rồi tách dần khi feature phình ra. Cấu trúc thư mục phải **theo kịp** độ phức tạp, chứ không đi trước nó.
+and split things out as the feature grows. The folder structure should **keep up with** complexity, not run ahead of it.
 
-Điều duy nhất phải làm nghiêm ngay từ ngày đầu là **`index.ts` + rule chặn import xuyên feature**. Có nó thì mọi bước tách sau này chỉ là di chuyển file trong một thư mục; thiếu nó thì 6 tháng sau bạn sẽ có một đống import chằng chịt không gỡ nổi.
+The one thing to take seriously from day one is **`index.ts` + a rule blocking cross-feature deep imports**. With it, every later split is just moving files inside one folder; without it, in six months you will have a tangle of imports nobody can unpick.

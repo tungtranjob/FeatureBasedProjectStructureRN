@@ -2,38 +2,38 @@ import {logger} from '../logger/logger';
 import type {AppEventName, AppEvents} from './app-events';
 
 /**
- * EVENT BUS — cách hai feature "nói chuyện" mà không cần biết nhau.
+ * EVENT BUS — how two features "talk" without knowing about each other.
  *
- * Khi nào dùng event thay vì import trực tiếp:
- *  - Nhiều bên cùng quan tâm tới một chuyện (payment xong -> cart + order +
- *    navigation + analytics đều cần phản ứng).
- *  - Bên phát KHÔNG cần biết kết quả, cũng không cần chờ.
- *  - Muốn tránh phụ thuộc ngược chiều (payment không nên biết cart tồn tại).
+ * When to use an event instead of a direct import:
+ *  - Several parties care about the same thing (payment done -> cart + order +
+ *    navigation + analytics all need to react).
+ *  - The emitter does NOT need a result and does not need to wait.
+ *  - You want to avoid a backwards dependency (payment should not know cart exists).
  *
- * Khi nào KHÔNG dùng:
- *  - Cần giá trị trả về ngay -> gọi hàm/hook trực tiếp.
- *  - Chỉ 1 nơi lắng nghe -> event làm code khó lần dấu vết mà chẳng lợi gì.
+ * When NOT to use one:
+ *  - You need a return value right away -> call the function/hook directly.
+ *  - Only one place listens -> the event makes the code hard to trace for no gain.
  *
- * Cài đặt thủ công ~40 dòng thay vì thêm dependency: đủ dùng và không có
- * gì bí ẩn khi cần debug.
+ * Hand-written in ~40 lines rather than adding a dependency: it is enough, and there
+ * is nothing mysterious about it when you need to debug.
  */
 type Listener<K extends AppEventName> = (payload: AppEvents[K]) => void;
 
 /**
- * Bên trong lưu listener dưới dạng "không rõ kiểu" và ép kiểu tại biên
- * (trong `on` và `emit`). TypeScript không thể tự chứng minh rằng
- * Set<Listener<K>> khớp với một mapped type theo K, nên nếu cố giữ kiểu chặt
- * ở đây ta sẽ phải bọc mọi thứ trong generic phức tạp mà chẳng thêm an toàn.
+ * Internally listeners are stored untyped and cast at the boundary (in `on` and
+ * `emit`). TypeScript cannot prove that Set<Listener<K>> lines up with a mapped
+ * type over K, so insisting on strict types in here would mean wrapping everything
+ * in elaborate generics for no extra safety.
  *
- * An toàn kiểu THẬT SỰ nằm ở chữ ký public của `on`/`emit` — nơi người dùng
- * API chạm vào. Bên trong là chi tiết cài đặt.
+ * The REAL type safety lives in the public signatures of `on`/`emit` — the part API
+ * users touch. The inside is an implementation detail.
  */
 type UnknownListener = (payload: unknown) => void;
 
 const listeners = new Map<AppEventName, Set<UnknownListener>>();
 
 export const appEventBus = {
-  /** Trả về hàm huỷ đăng ký — LUÔN gọi nó trong cleanup của useEffect. */
+  /** Returns an unsubscribe function — ALWAYS call it in the useEffect cleanup. */
   on<K extends AppEventName>(event: K, listener: Listener<K>): () => void {
     let set = listeners.get(event);
     if (!set) {
@@ -53,19 +53,19 @@ export const appEventBus = {
     if (!set || set.size === 0) {
       return;
     }
-    // Sao chép sang mảng trước khi duyệt: listener có thể tự huỷ đăng ký
-    // ngay trong lúc chạy, sửa Set đang lặp sẽ gây lỗi khó lần.
+    // Copy into an array before iterating: a listener may unsubscribe itself
+    // while running, and mutating a Set mid-iteration causes hard-to-trace bugs.
     for (const listener of Array.from(set)) {
       try {
         (listener as Listener<K>)(payload);
       } catch (error) {
-        // Một listener lỗi KHÔNG được làm chết các listener còn lại.
+        // One failing listener must NOT kill the remaining listeners.
         logger.error('EventBus', `listener của "${event}" ném lỗi`, error);
       }
     }
   },
 
-  /** Dùng trong test để dọn sạch giữa các case. */
+  /** Used in tests to reset between cases. */
   reset(): void {
     listeners.clear();
   },

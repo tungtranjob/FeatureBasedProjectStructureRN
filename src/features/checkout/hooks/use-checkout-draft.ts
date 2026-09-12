@@ -1,9 +1,9 @@
 import {useEffect, useMemo} from 'react';
 import {useQuery} from '@tanstack/react-query';
 import {money} from '@shared/types/money';
-// ⭐ CHECKOUT LÀ ĐIỂM HỘI TỤ: nó import 5 feature khác.
-// Điều này BÌNH THƯỜNG và ĐÚNG — checkout tồn tại chính là để ghép chúng lại.
-// Chiều ngược lại thì tuyệt đối không: cart không được import checkout.
+// ⭐ CHECKOUT IS THE MEETING POINT: it imports 5 other features.
+// That is NORMAL and CORRECT — checkout exists precisely to join them together.
+// The reverse is never allowed: cart must not import checkout.
 import {useCart} from '@features/cart';
 import {useDeliveryAddress} from '@features/address';
 import {calcDiscount, useVouchers} from '@features/promotion';
@@ -15,10 +15,10 @@ import {validateCheckout} from '../model/validate-checkout';
 import {useCheckoutStore} from '../store/checkout.store';
 
 /**
- * Gom toàn bộ dữ liệu cần cho màn checkout.
+ * Gathers all the data the checkout screen needs.
  *
- * Hook này làm 4 việc: gom dữ liệu từ các feature, tính phí tạm (client),
- * đối chiếu với báo giá của server, và kiểm tra điều kiện đặt hàng.
+ * This hook does 4 things: collect data from the features, compute provisional fees
+ * (client-side), reconcile with the server's quote, and validate the order conditions.
  */
 export function useCheckoutDraft() {
   const cart = useCart();
@@ -48,7 +48,7 @@ export function useCheckoutDraft() {
     [voucher, cart.subtotal, deliveryFee, cart.restaurantId],
   );
 
-  /* ---- 1. Tính nhanh ở client để UI phản hồi tức thì ---- */
+  /* ---- 1. A quick client-side calculation so the UI responds instantly ---- */
   const localFees = useMemo<FeeBreakdown>(
     () =>
       cart.isEmpty
@@ -57,7 +57,7 @@ export function useCheckoutDraft() {
     [cart.isEmpty, cart.subtotal, deliveryFee, discount],
   );
 
-  /* ---- 2. Hỏi server báo giá chính thức ---- */
+  /* ---- 2. Ask the server for the official quote ---- */
   const quote = useQuery({
     queryKey: ['checkout-quote', cart.restaurantId, cart.subtotal, voucherId],
     queryFn: () =>
@@ -68,21 +68,21 @@ export function useCheckoutDraft() {
       }),
     enabled: Boolean(cart.restaurantId) && !cart.isEmpty,
     /**
-     * Giữ dữ liệu cũ khi query key đổi, thay vì nháy về trạng thái loading.
-     * Người dùng đổi voucher sẽ thấy số cũ mờ đi rồi cập nhật, chứ không
-     * thấy bảng phí biến mất rồi hiện lại.
+     * Keep the previous data when the query key changes, instead of flashing back to
+     * a loading state. A user changing the voucher sees the old numbers dim and then
+     * update, rather than the whole breakdown disappearing and reappearing.
      */
     placeholderData: previous => previous,
     retry: 1,
   });
 
-  /* ---- 3. Server thắng khi có kết quả ---- */
+  /* ---- 3. The server wins once its result arrives ---- */
   const fees = quote.data ?? localFees;
 
-  /* ---- 4. Kiểm tra điều kiện đặt hàng ---- */
+  /* ---- 4. Validate the order conditions ---- */
   const isRestaurantOpen = restaurant
     ? getAvailability(restaurant) === 'open'
-    : true; // chưa tải xong -> chưa vội báo lỗi
+    : true; // still loading -> do not report an error yet
 
   const blockers = useMemo(
     () =>
@@ -97,14 +97,14 @@ export function useCheckoutDraft() {
   );
 
   /**
-   * Tự chuyển hình thức thanh toán khi lựa chọn hiện tại không còn hợp lệ.
+   * Switches the payment method automatically when the current choice stops being valid.
    *
-   * Kịch bản: chọn COD cho đơn 800k, rồi thêm món lên 1.2 triệu (COD chỉ
-   * cho tối đa 1 triệu). Không tự chuyển thì người dùng bấm đặt hàng và
-   * nhận lỗi từ server mà chẳng hiểu vì sao.
+   * The scenario: pick COD for an 800k order, then add items until it reaches 1.2 million
+   * (COD is capped at 1 million). Without the automatic switch the user taps order and
+   * gets a server error with no idea why.
    *
-   * Đặt trong useEffect vì đây là ĐỒNG BỘ HOÁ state với một giá trị dẫn
-   * xuất — trường hợp hiếm hoi mà useEffect là đúng công cụ.
+   * It sits in a useEffect because this is SYNCHRONISING state with a derived value —
+   * one of the rare cases where useEffect is the right tool.
    */
   useEffect(() => {
     const valid = resolveValidMethod(
@@ -126,7 +126,7 @@ export function useCheckoutDraft() {
     paymentMethod,
     note,
     fees,
-    /** Bảng phí đang là số tạm của client hay đã là số chính thức của server. */
+    /** Whether the breakdown is still the client's estimate or the server's official figure. */
     isQuoting: quote.isFetching,
     blockers,
     canPlaceOrder: blockers.length === 0 && !quote.isFetching,

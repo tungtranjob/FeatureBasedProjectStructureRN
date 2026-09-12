@@ -7,11 +7,11 @@ export interface OptionValidationError {
 }
 
 /**
- * Kiểm tra lựa chọn tuỳ chọn có hợp lệ không.
+ * Checks whether an option selection is valid.
  *
- * Trả về DANH SÁCH lỗi chứ không phải boolean, vì UI cần hiển thị đúng lỗi
- * bên cạnh đúng nhóm ("Vui lòng chọn size" ngay dưới mục Chọn size).
- * Trả về true/false thì màn hình chỉ biết nói "có gì đó sai" — vô dụng.
+ * Returns a LIST of errors rather than a boolean, because the UI needs to show the right
+ * error next to the right group ("Vui lòng chọn size" right under the size group).
+ * With true/false the screen can only say "something is wrong" — which is useless.
  */
 export const validateOptionSelection = (
   item: MenuItem,
@@ -49,11 +49,11 @@ export const isSelectionValid = (
 ): boolean => validateOptionSelection(item, selection).length === 0;
 
 /**
- * Lựa chọn mặc định khi mở màn hình chi tiết món.
+ * The default selection when the item detail screen opens.
  *
- * Nhóm bắt buộc thì tự chọn sẵn mục đầu tiên. Đây là quyết định về TRẢI
- * NGHIỆM, và nó nằm ở model/ chứ không nằm trong component — nhờ vậy khi
- * sản phẩm muốn đổi thành "chọn mục rẻ nhất", ta sửa 1 hàm có test bao phủ.
+ * Required groups pre-select their first entry. That is a UX decision, and it lives in
+ * model/ rather than in a component — so when the product team wants "pre-select the
+ * cheapest option" instead, we change 1 function that has test coverage.
  */
 export const buildDefaultSelection = (item: MenuItem): OptionSelection => {
   const selection: OptionSelection = {};
@@ -65,11 +65,11 @@ export const buildDefaultSelection = (item: MenuItem): OptionSelection => {
 };
 
 /**
- * Bật/tắt một option, tôn trọng ràng buộc của nhóm.
+ * Toggles an option, respecting the group's constraints.
  *
- * - Nhóm chọn-một (maxSelect = 1): chọn cái mới thay thế cái cũ.
- * - Nhóm chọn-nhiều: chạm để bật/tắt, nhưng chặn khi đã đạt maxSelect.
- * - Nhóm bắt buộc: không cho bỏ chọn mục cuối cùng.
+ * - Single-select group (maxSelect = 1): picking a new one replaces the old one.
+ * - Multi-select group: tap to toggle, but blocked once maxSelect is reached.
+ * - Required group: the last selected entry cannot be deselected.
  */
 export const toggleOption = (
   item: MenuItem,
@@ -86,7 +86,7 @@ export const toggleOption = (
   const isSelected = current.includes(optionId);
 
   if (group.maxSelect === 1) {
-    // Bỏ chọn mục duy nhất của nhóm bắt buộc -> không cho.
+    // Deselecting the only entry of a required group -> not allowed.
     if (isSelected && group.required) {
       return selection;
     }
@@ -98,7 +98,7 @@ export const toggleOption = (
   }
 
   if (current.length >= group.maxSelect) {
-    return selection; // đã đủ, bỏ qua thao tác
+    return selection; // already at the limit, ignore the tap
   }
 
   return {...selection, [groupId]: [...current, optionId]};

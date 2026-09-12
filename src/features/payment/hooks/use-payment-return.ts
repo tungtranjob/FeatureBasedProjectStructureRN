@@ -12,28 +12,28 @@ const POLL_INTERVAL_MS = 1500;
 const POLL_MAX_ATTEMPTS = 8;
 
 /**
- * ⭐⭐⭐ HOOK QUAN TRỌNG NHẤT CỦA FEATURE PAYMENT.
+ * ⭐⭐⭐ THE MOST IMPORTANT HOOK IN THE PAYMENT FEATURE.
  *
- * Nó xử lý câu hỏi: "người dùng vừa quay lại từ app MoMo — họ đã trả tiền chưa?"
+ * It answers the question: "the user just came back from MoMo — have they paid?"
  *
- * Cái bẫy lớn nhất với người mới làm mobile payment: tưởng rằng CHỈ CÓ MỘT
- * đường quay lại (deep link). Thực tế có BA, và bỏ sót đường nào cũng để lại
- * một nhóm người dùng mắc kẹt ở màn hình "đang xử lý" vĩnh viễn:
+ * The biggest trap for anyone new to mobile payments: assuming there is only ONE way
+ * back (the deep link). There are actually THREE, and missing any of them leaves a
+ * group of users stuck on the "processing" screen forever:
  *
  *   1. DEEP LINK — foodgo://payment/return.
- *      Đường đẹp nhất. Xảy ra khi user bấm "Quay lại ứng dụng" trong MoMo.
+ *      The happy path. Happens when the user taps "Quay lại ứng dụng" in MoMo.
  *
- *   2. APP QUAY LẠI FOREGROUND — không có deep link nào cả.
- *      Xảy ra khi user tự bấm nút Back của máy, hoặc chuyển app bằng
- *      multitask. Rất phổ biến. Chỉ có sự kiện AppState 'active'.
+ *   2. THE APP RETURNS TO THE FOREGROUND — with no deep link at all.
+ *      Happens when the user presses the device's Back button, or switches apps via
+ *      the multitasker. Very common. The only signal is the AppState 'active' event.
  *
- *   3. COLD START — app đã bị hệ điều hành GIẾT khi ở nền.
- *      Không deep link, không AppState change. App khởi động lại từ đầu và
- *      manh mối duy nhất là pendingIntentId đã persist xuống đĩa.
+ *   3. COLD START — the OS KILLED the app while it was in the background.
+ *      No deep link, no AppState change. The app starts from scratch and the only
+ *      clue is the pendingIntentId persisted to disk.
  *
- * Trong cả ba đường, SERVER LÀ NGUỒN SỰ THẬT. Ta không bao giờ tin tham số
- * trên deep link (ai cũng gõ được `foodgo://payment/return?status=success`
- * vào trình duyệt) — ta chỉ dùng nó làm tín hiệu để đi HỎI server.
+ * On all three routes, THE SERVER IS THE SOURCE OF TRUTH. We never trust the deep
+ * link's parameters (anyone can type `foodgo://payment/return?status=success` into a
+ * browser) — we only use it as a signal to go ASK the server.
  */
 export function usePaymentReturn(options?: {
   onResolved?: (result: {success: boolean; orderId: string}) => void;
@@ -44,8 +44,8 @@ export function usePaymentReturn(options?: {
 
   const [status, setStatus] = useState<PaymentFlowStatus>('idle');
 
-  // Chặn hai lần verify chạy chồng nhau. Rất dễ xảy ra: deep link và
-  // AppState 'active' thường bắn gần như đồng thời.
+  // Stops two verifications running on top of each other. Very easy to hit: the deep
+  // link and the AppState 'active' event usually fire almost simultaneously.
   const isVerifying = useRef(false);
   const onResolvedRef = useRef(options?.onResolved);
   onResolvedRef.current = options?.onResolved;
@@ -64,9 +64,9 @@ export function usePaymentReturn(options?: {
 
     try {
       /**
-       * Hỏi lại nhiều lần: webhook từ cổng thanh toán tới backend có thể
-       * chậm hơn việc người dùng quay lại app vài giây. Hỏi một lần rồi kết
-       * luận "thất bại" là sai lầm kinh điển.
+       * Ask repeatedly: the gateway's webhook to the backend can arrive a few seconds
+       * later than the user returns to the app. Asking once and concluding "failed"
+       * is the classic mistake.
        */
       for (let attempt = 0; attempt < POLL_MAX_ATTEMPTS; attempt += 1) {
         const intent = await paymentApi.getIntent(intentId);
@@ -97,21 +97,21 @@ export function usePaymentReturn(options?: {
       }
 
       /**
-       * Hết lượt hỏi mà vẫn PENDING. KHÔNG được xoá pendingIntentId ở đây:
-       * giao dịch có thể vẫn đang được xử lý. Cứ giữ lại để lần sau mở app
-       * còn hỏi tiếp. Thà hỏi thừa còn hơn để mất dấu một khoản tiền.
+       * Out of attempts and still PENDING. Do NOT clear pendingIntentId here:
+       * the transaction may still be processing. Keep it so the next app launch can
+       * ask again. Better to ask redundantly than to lose track of someone's money.
        */
       setStatus('redirected');
       logger.warn('Payment', 'Hết thời gian chờ, giữ giao dịch để hỏi lại sau');
     } catch (error) {
       logger.error('Payment', 'Xác minh thất bại', error);
-      setStatus('redirected'); // lỗi mạng -> vẫn giữ pending
+      setStatus('redirected'); // network error -> still pending
     } finally {
       isVerifying.current = false;
     }
   }, [clearPending]);
 
-  /* --- Đường 1: deep link --- */
+  /* --- Route 1: the deep link --- */
   useEffect(() => {
     const subscription = Linking.addEventListener('url', ({url}) => {
       if (url.includes('/payment/return')) {
@@ -122,20 +122,20 @@ export function usePaymentReturn(options?: {
     return () => subscription.remove();
   }, [verify]);
 
-  /* --- Đường 2: app quay lại foreground --- */
+  /* --- Route 2: the app returns to the foreground --- */
   useAppState((next, previous) => {
     if (next === 'active' && previous !== 'active' && pendingIntentId) {
       void verify();
     }
   });
 
-  /* --- Đường 3: cold start sau khi app bị giết --- */
+  /* --- Route 3: a cold start after the app was killed --- */
   useEffect(() => {
     if (pendingIntentId) {
       void verify();
     }
-    // Cố tình chỉ chạy một lần lúc mount: đây là nhánh "khởi động lại".
-    // Các lần sau đã có đường 1 và 2 lo.
+    // Deliberately runs only once on mount: this is the "relaunch" branch.
+    // Routes 1 and 2 cover everything after that.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -143,9 +143,9 @@ export function usePaymentReturn(options?: {
     status,
     pendingIntentId,
     pendingOrderId,
-    /** Cho phép màn hình chủ động kiểm tra lại (nút "Tôi đã thanh toán"). */
+    /** Lets the screen re-check on demand (the "Tôi đã thanh toán" button). */
     verifyNow: verify,
-    /** Người dùng bỏ cuộc — huỷ theo dõi giao dịch này. */
+    /** The user gave up — stop tracking this transaction. */
     abandon: () => {
       clearPending();
       setStatus('idle');

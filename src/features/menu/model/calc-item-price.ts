@@ -2,9 +2,9 @@ import {addMoney, money, multiplyMoney, type Money} from '@shared/types/money';
 import type {MenuItem, MenuOption, OptionSelection} from './types';
 
 /**
- * Lấy ra các option đã chọn dưới dạng danh sách phẳng.
- * Bỏ qua id không tồn tại (dữ liệu cũ, menu vừa đổi) thay vì ném lỗi —
- * người dùng không nên thấy màn hình trắng chỉ vì quán bỏ một topping.
+ * Flattens the selected options into a plain list.
+ * Unknown ids (stale data, a menu that just changed) are skipped rather than throwing —
+ * the user should not get a blank screen just because the restaurant dropped a topping.
  */
 export const resolveSelectedOptions = (
   item: MenuItem,
@@ -23,7 +23,7 @@ export const resolveSelectedOptions = (
   return result;
 };
 
-/** Giá MỘT phần = giá gốc + tổng chênh lệch của các tuỳ chọn. */
+/** Unit price = base price + the sum of the option deltas. */
 export const calcUnitPrice = (
   item: MenuItem,
   selection: OptionSelection,
@@ -32,7 +32,7 @@ export const calcUnitPrice = (
   return addMoney(item.basePrice, ...options.map(o => o.priceDelta));
 };
 
-/** Giá của cả dòng = giá một phần × số lượng. */
+/** Line price = unit price × quantity. */
 export const calcLinePrice = (
   item: MenuItem,
   selection: OptionSelection,

@@ -10,6 +10,6 @@ export function useAddresses() {
   return useQuery({
     queryKey: addressKeys.list(),
     queryFn: addressApi.list,
-    staleTime: 10 * 60_000, // sổ địa chỉ rất ít khi đổi
+    staleTime: 10 * 60_000, // the address book rarely changes
   });
 }

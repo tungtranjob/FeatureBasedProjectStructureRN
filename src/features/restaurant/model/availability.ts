@@ -1,17 +1,17 @@
 import type {Restaurant, RestaurantAvailability} from './types';
 
 /**
- * Nhà hàng có đang nhận đơn không?
+ * Is the restaurant currently accepting orders?
  *
- * Hàm thuần, nhận `now` làm THAM SỐ chứ không gọi Date.now() bên trong.
- * Đó là mẹo nhỏ nhưng quan trọng: nhờ vậy test kiểm được cả lúc 3 giờ sáng
- * mà không cần mock đồng hồ hệ thống.
+ * A pure function that takes `now` as a PARAMETER rather than calling Date.now() inside.
+ * Small but important trick: it lets tests cover 3am without mocking the system
+ * clock.
  */
 export const getAvailability = (
   restaurant: Pick<Restaurant, 'openHour' | 'closeHour' | 'isPaused'>,
   now: Date = new Date(),
 ): RestaurantAvailability => {
-  // Tạm ngưng thủ công thắng mọi thứ khác — kể cả đang trong giờ mở cửa.
+  // A manual pause beats everything else — even during opening hours.
   if (restaurant.isPaused) {
     return 'paused';
   }
@@ -19,7 +19,7 @@ export const getAvailability = (
   const hour = now.getHours();
   const {openHour, closeHour} = restaurant;
 
-  // Ca qua đêm, VD mở 18h đóng 2h sáng hôm sau.
+  // An overnight shift, e.g. open at 18:00 and close at 02:00 the next day.
   const isOvernight = closeHour <= openHour;
   const isOpen = isOvernight
     ? hour >= openHour || hour < closeHour

@@ -1,17 +1,17 @@
 /**
- * Một loại lỗi DUY NHẤT chạy xuyên app.
+ * ONE error type that flows through the whole app.
  *
- * Tại sao quan trọng: nếu không chuẩn hoá, UI sẽ phải đoán mò —
- * lỗi này là AxiosError? là Error thường? là string? là object {message}?
- * Interceptor ở core/api sẽ dịch MỌI thứ về AppError, nên component chỉ
- * cần biết đúng một hình dạng.
+ * Why it matters: without a standard shape the UI has to guess —
+ * is this an AxiosError? a plain Error? a string? an object {message}?
+ * The interceptor in core/api translates EVERYTHING into AppError, so components
+ * only ever deal with a single shape.
  */
 export type AppErrorKind =
-  | 'network' // mất mạng, timeout
-  | 'auth' // 401/403 — cần đăng nhập lại
-  | 'validation' // 400/422 — dữ liệu gửi lên sai
+  | 'network' // offline, timeout
+  | 'auth' // 401/403 — needs to sign in again
+  | 'validation' // 400/422 — bad payload sent
   | 'not_found' // 404
-  | 'conflict' // 409 — VD: món vừa hết hàng
+  | 'conflict' // 409 — e.g. the item just sold out
   | 'server' // 5xx
   | 'unknown';
 
@@ -33,7 +33,7 @@ export class AppError extends Error {
     this.details = params.details;
   }
 
-  /** Lỗi mạng/server thì retry có ý nghĩa; lỗi validation thì không. */
+  /** Retrying makes sense for network/server errors; for validation errors it does not. */
   get isRetryable(): boolean {
     return this.kind === 'network' || this.kind === 'server';
   }
@@ -50,7 +50,7 @@ export class AppError extends Error {
   }
 }
 
-/** Thông điệp hiển thị cho người dùng — không lộ chi tiết kỹ thuật. */
+/** Message shown to the user — never leaks technical detail. */
 export const toUserMessage = (error: unknown): string => {
   const appError = AppError.from(error);
   switch (appError.kind) {

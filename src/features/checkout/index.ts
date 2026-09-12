@@ -1,4 +1,4 @@
-/** PUBLIC API của feature checkout. */
+/** The checkout feature's PUBLIC API. */
 export {CheckoutScreen} from './screens/CheckoutScreen';
 export {VoucherPickerScreen} from './screens/VoucherPickerScreen';
 export {CHECKOUT_ROUTES} from './navigation/checkout.routes';
@@ -9,6 +9,6 @@ export type {CheckoutBlocker} from './model/validate-checkout';
 
 import {useCheckoutStore} from './store/checkout.store';
 
-/** Reset nháp checkout (gọi từ app/bootstrap khi đăng xuất). */
+/** Resets the checkout draft (called from app/bootstrap on sign-out). */
 export const resetCheckoutDraft = (): void =>
   useCheckoutStore.getState().reset();

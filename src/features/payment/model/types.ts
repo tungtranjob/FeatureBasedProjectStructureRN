@@ -10,33 +10,33 @@ export interface PaymentIntent {
   method: PaymentMethod;
   amount: Money;
   status: PaymentStatus;
-  /** URL/deeplink để mở app cổng thanh toán. null với COD. */
+  /** URL/deeplink that opens the gateway app. null for COD. */
   redirectUrl: string | null;
   expiresAt: string;
 }
 
 /**
- * Kết quả của việc "khởi động" thanh toán.
+ * The result of "starting" a payment.
  *
- * ⭐ Phân biệt `completed` và `redirected` là điểm mấu chốt của thanh toán
- * trên mobile:
+ * ⭐ Telling `completed` and `redirected` apart is the crux of mobile
+ * payments:
  *
- *   completed  -> xong ngay trong app (COD, hoặc Apple Pay/Google Pay sheet).
- *   redirected -> APP ĐÃ BỊ ĐẨY RA NỀN. Người dùng đang ở trong app MoMo.
- *                 Ta không biết khi nào họ quay lại, hay có quay lại không.
- *                 Hệ điều hành hoàn toàn có thể giết app trong lúc đó.
- *   aborted    -> không khởi động được (chưa cài app cổng thanh toán).
+ *   completed  -> finished inside the app (COD, or an Apple Pay/Google Pay sheet).
+ *   redirected -> THE APP HAS BEEN BACKGROUNDED. The user is inside the MoMo app.
+ *                 We do not know when they will come back, or whether they will.
+ *                 The OS may well kill the app in the meantime.
+ *   aborted    -> could not start (the gateway app is not installed).
  */
 export type PaymentLaunchResult =
   | {status: 'completed'}
   | {status: 'redirected'}
   | {status: 'aborted'; reason: string};
 
-/** Trạng thái của luồng thanh toán nhìn từ phía UI. */
+/** The payment flow's status as the UI sees it. */
 export type PaymentFlowStatus =
   | 'idle'
-  | 'initiating' // đang gọi server tạo giao dịch
-  | 'redirected' // đã rời app, đang chờ quay lại
-  | 'verifying' // đã quay lại, đang hỏi server kết quả
+  | 'initiating' // asking the server to create the transaction
+  | 'redirected' // left the app, waiting for the return
+  | 'verifying' // back in the app, asking the server for the result
   | 'succeeded'
   | 'failed';

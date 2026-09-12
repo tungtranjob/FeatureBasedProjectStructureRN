@@ -3,14 +3,14 @@ import {BackHandler} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 
 /**
- * Chặn người dùng rời màn hình khi đang có thao tác không được ngắt quãng.
+ * Stops the user leaving a screen during an operation that must not be interrupted.
  *
- * Phải chặn CẢ HAI đường, vì trên mobile chúng là hai cơ chế khác nhau:
- *  - Android: nút Back cứng/gesture -> BackHandler.
- *  - iOS + Android: vuốt back / nút back trên header -> sự kiện
- *    'beforeRemove' của React Navigation.
+ * BOTH routes have to be blocked, because on mobile they are two different mechanisms:
+ *  - Android: the hardware back button/gesture -> BackHandler.
+ *  - iOS + Android: the back swipe / header back button -> React Navigation's
+ *    'beforeRemove' event.
  *
- * Quên một trong hai là người dùng vẫn thoát được giữa lúc thanh toán.
+ * Forget either one and the user can still escape mid-payment.
  */
 export function useBackHandlerGuard(enabled: boolean): void {
   const navigation = useNavigation();
@@ -22,7 +22,7 @@ export function useBackHandlerGuard(enabled: boolean): void {
 
     const hardwareSub = BackHandler.addEventListener(
       'hardwareBackPress',
-      () => true, // true = "tôi đã xử lý", chặn hành vi mặc định
+      () => true, // true = "I handled it", blocking the default behaviour
     );
 
     const navSub = navigation.addListener('beforeRemove', event => {

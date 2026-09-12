@@ -12,12 +12,12 @@ export interface Voucher {
   value: number;
   maxDiscount: Money | null;
   minOrderAmount: Money;
-  /** null = áp dụng cho mọi nhà hàng. */
+  /** null = applies to every restaurant. */
   restaurantId: string | null;
   expiresAt: string;
 }
 
-/** Vì sao voucher không dùng được — để UI nói cho user biết phải làm gì. */
+/** Why a voucher cannot be used — so the UI can tell the user what to do about it. */
 export type IneligibleReason =
   | 'expired'
   | 'below-min-order'

@@ -2,11 +2,11 @@ import type {StateStorage} from 'zustand/middleware';
 import {kv, secureKv} from './kv';
 
 /**
- * Adapter nối MMKV vào middleware `persist` của zustand.
+ * Adapter that plugs MMKV into zustand's `persist` middleware.
  *
- * zustand mong đợi một interface giống localStorage (get/set/remove trả về
- * string | Promise<string>). MMKV là đồng bộ nên nhanh hơn AsyncStorage rất
- * nhiều — quan trọng vì store được hydrate ngay lúc app khởi động.
+ * zustand expects a localStorage-like interface (get/set/remove returning
+ * string | Promise<string>). MMKV is synchronous, so it is far faster than
+ * AsyncStorage — which matters because stores hydrate during app startup.
  */
 export const mmkvStorage: StateStorage = {
   getItem: name => kv.getString(name) ?? null,
@@ -14,7 +14,7 @@ export const mmkvStorage: StateStorage = {
   removeItem: name => kv.delete(name),
 };
 
-/** Dùng cho store chứa token. */
+/** For the store that holds tokens. */
 export const secureMmkvStorage: StateStorage = {
   getItem: name => secureKv.getString(name) ?? null,
   setItem: (name, value) => secureKv.set(name, value),

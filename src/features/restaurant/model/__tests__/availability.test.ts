@@ -1,12 +1,12 @@
 import {canOrderFrom, getAvailability} from '../availability';
 
 /**
- * Vì `availability.ts` là TypeScript thuần (không React, không RN), test
- * của nó chạy trong vài mili-giây và không cần render gì cả.
+ * Because `availability.ts` is plain TypeScript (no React, no RN), its tests run in
+ * a few milliseconds and render nothing at all.
  *
- * Đây là lý do thực dụng nhất để tách model/ ra khỏi component: nếu logic
- * này nằm trong RestaurantCard.tsx, muốn test ca "quán mở qua đêm" bạn
- * phải render cả một cái thẻ và mock đồng hồ hệ thống.
+ * That is the most practical reason to keep model/ out of components: if this logic
+ * lived inside RestaurantCard.tsx, testing the "open overnight" case would mean
+ * rendering a whole card and mocking the system clock.
  */
 const at = (hour: number) => new Date(2026, 0, 15, hour, 0, 0);
 

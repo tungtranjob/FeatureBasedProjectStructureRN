@@ -1,19 +1,19 @@
 import {Platform} from 'react-native';
 
 /**
- * Đọc nền tảng hiện tại.
+ * Reads the current platform.
  *
- * File này nằm ở lib/ chứ KHÔNG nằm ở model/, và đó là cả một bài học:
- * dependency-cruiser đã bắt được lỗi khi Platform bị import thẳng vào
+ * This file lives in lib/ and NOT in model/, and there is a lesson in that:
+ * dependency-cruiser caught the mistake when Platform was imported directly into
  * model/payment-method.registry.ts (rule "model-must-be-pure").
  *
- * Vì sao đáng bận tâm: model/ phải là hàm thuần, nhận mọi thứ qua tham số.
- * Một khi nó đọc trạng thái toàn cục như Platform.OS, bạn không còn test
- * được nhánh iOS trên máy chạy Android nữa — và test đó chính là thứ bắt
- * được lỗi "Apple Pay hiện trên Android".
+ * Why it matters: model/ must be pure functions that take everything as parameters.
+ * Once it reads global state like Platform.OS, you can no longer test the iOS branch
+ * on a machine running Android — and that test is exactly what catches the
+ * "Apple Pay shows on Android" bug.
  *
- * Giải pháp: model nhận `platform` làm THAM SỐ BẮT BUỘC; tầng gọi (hook,
- * component) mới là nơi đọc giá trị thật từ hệ điều hành.
+ * The fix: model takes `platform` as a REQUIRED PARAMETER; the calling layer (a hook
+ * or a component) is where the real value is read from the OS.
  */
 export type AppPlatform = 'ios' | 'android';
 

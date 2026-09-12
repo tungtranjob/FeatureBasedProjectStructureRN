@@ -9,13 +9,13 @@ interface State {
 }
 
 /**
- * Lưới an toàn cuối cùng.
+ * The last safety net.
  *
- * Không có nó, một lỗi chưa bắt trong bất kỳ component nào sẽ cho người
- * dùng một MÀN HÌNH TRẮNG, không nút bấm, không cách thoát — phải force
- * quit app. Với người dùng, đó gần như là app đã chết.
+ * Without it, one uncaught error in any component leaves the user on a BLANK
+ * SCREEN with no buttons and no way out — they have to force quit the app.
+ * To the user, that is indistinguishable from the app being dead.
  *
- * Vẫn phải viết bằng class component: React chưa có bản hook tương đương.
+ * It still has to be a class component: React has no hook equivalent yet.
  */
 export class AppErrorBoundary extends React.Component<
   {children: React.ReactNode},
@@ -29,7 +29,7 @@ export class AppErrorBoundary extends React.Component<
 
   componentDidCatch(error: Error, info: React.ErrorInfo): void {
     logger.error('ErrorBoundary', error.message, info.componentStack);
-    // Trong app thật: Sentry.captureException(error, {extra: info});
+    // In a real app: Sentry.captureException(error, {extra: info});
   }
 
   render() {

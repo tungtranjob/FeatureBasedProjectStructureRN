@@ -1,8 +1,8 @@
 /**
- * Thang khoảng cách 4pt. Chỉ dùng các giá trị trong đây.
+ * 4pt spacing scale. Only use the values defined here.
  *
- * Ràng buộc kiểu `Spacing` khiến `padding: 13` bị TypeScript chặn ngay —
- * đó chính là mục đích: giữ nhịp thị giác của app đồng nhất.
+ * The `Spacing` type constraint makes `padding: 13` a TypeScript error —
+ * which is the point: it keeps the app's visual rhythm consistent.
  */
 export const spacing = {
   xs: 4,

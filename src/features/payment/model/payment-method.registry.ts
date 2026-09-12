@@ -2,25 +2,25 @@ import type {Money} from '@shared/types/money';
 import type {PaymentMethod} from './types';
 
 /**
- * Nền tảng được truyền VÀO chứ không tự đọc từ Platform.OS.
- * Xem ghi chú trong ../lib/current-platform.ts để biết vì sao.
+ * The platform is passed IN rather than read from Platform.OS.
+ * See the note in ../lib/current-platform.ts for why.
  */
 export type AppPlatform = 'ios' | 'android';
 
 /**
- * DANH MỤC HÌNH THỨC THANH TOÁN.
+ * THE PAYMENT METHOD CATALOGUE.
  *
- * Gom mọi thứ về từng phương thức vào MỘT bảng thay vì rải if/else khắp UI.
- * Thêm ZaloPay = thêm một dòng ở đây + một file provider. Không đụng màn hình.
+ * Everything about each method in ONE table instead of if/else scattered through the UI.
+ * Adding ZaloPay = one row here + one provider file. No screen is touched.
  */
 export interface PaymentMethodInfo {
   method: PaymentMethod;
   label: string;
   icon: string;
   description: string;
-  /** Hạn mức tối đa. null = không giới hạn. */
+  /** The maximum amount. null = no limit. */
   maxAmount: number | null;
-  /** Nền tảng hỗ trợ. Apple Pay chỉ iOS, Google Pay chỉ Android. */
+  /** Supported platforms. Apple Pay is iOS only, Google Pay Android only. */
   platforms: AppPlatform[];
 }
 
@@ -30,7 +30,7 @@ export const PAYMENT_METHODS: PaymentMethodInfo[] = [
     label: 'Tiền mặt khi nhận hàng',
     icon: '💵',
     description: 'Thanh toán trực tiếp cho tài xế',
-    // Quy tắc nghiệp vụ thật: đơn lớn không cho COD vì rủi ro bom hàng.
+    // A real business rule: large orders cannot use COD because of the risk of refusal.
     maxAmount: 1_000_000,
     platforms: ['ios', 'android'],
   },
@@ -61,10 +61,10 @@ export const PAYMENT_METHODS: PaymentMethodInfo[] = [
 ];
 
 /**
- * Lọc ra những phương thức DÙNG ĐƯỢC cho đơn hàng này.
+ * Filters down to the methods USABLE for this order.
  *
- * Hàm thuần, nhận platform làm tham số -> test được cả hai nền tảng trên
- * cùng một máy.
+ * A pure function taking platform as a parameter -> both platforms are testable on
+ * one machine.
  */
 export const getAvailableMethods = (
   amount: Money,
@@ -81,11 +81,11 @@ export const getMethodInfo = (method: PaymentMethod): PaymentMethodInfo =>
   (PAYMENT_METHODS[0] as PaymentMethodInfo);
 
 /**
- * Chọn phương thức mặc định hợp lệ.
+ * Picks a valid default method.
  *
- * Tình huống thật: user chọn COD cho đơn 500k, rồi thêm món lên 1.2 triệu.
- * COD không còn hợp lệ -> phải tự chuyển, nếu không họ sẽ bấm đặt hàng và
- * nhận lỗi từ server mà không hiểu vì sao.
+ * A real situation: the user picks COD for a 500k order, then adds items up to 1.2 million.
+ * COD is no longer valid -> we have to switch automatically, or they tap order and
+ * get a server error with no idea why.
  */
 export const resolveValidMethod = (
   current: PaymentMethod,

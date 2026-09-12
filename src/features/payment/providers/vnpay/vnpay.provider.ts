@@ -3,22 +3,22 @@ import {logger} from '@core/logger/logger';
 import type {PaymentProvider} from '../provider.types';
 
 /**
- * PROVIDER VNPAY — mở trang web thanh toán.
+ * THE VNPAY PROVIDER — opens a payment web page.
  *
- * Khác MoMo ở chỗ nó mở TRÌNH DUYỆT chứ không mở app. Trong app thật nên
- * dùng react-native-inappbrowser-reborn (SFSafariViewController trên iOS,
- * Custom Tabs trên Android) thay vì Linking.openURL:
- *   - Người dùng không bị đá hẳn ra Safari/Chrome.
- *   - Đóng trình duyệt là quay lại app ngay, có callback rõ ràng.
- *   - Ta chủ động đóng được khi nhận deep link.
+ * It differs from MoMo in opening a BROWSER rather than an app. A real app should use
+ * react-native-inappbrowser-reborn (SFSafariViewController on iOS, Custom Tabs on
+ * Android) instead of Linking.openURL:
+ *   - The user is not thrown all the way out to Safari/Chrome.
+ *   - Closing the browser returns to the app immediately, with a clear callback.
+ *   - We can close it ourselves when the deep link arrives.
  *
- * Ở đây dùng Linking cho gọn, khỏi thêm native dependency.
+ * Linking is used here for brevity, to avoid another native dependency.
  */
 export const vnpayProvider: PaymentProvider = {
   method: 'VNPAY',
 
   async isAvailable() {
-    return true; // trình duyệt thì máy nào cũng có
+    return true; // every device has a browser
   },
 
   async pay(intent) {

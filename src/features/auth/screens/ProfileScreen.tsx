@@ -6,14 +6,14 @@ import {colors, radius, spacing} from '@shared/theme';
 import {useAuth} from '../hooks/use-auth';
 
 /**
- * Màn hồ sơ cá nhân — cố tình để tối giản.
+ * The profile screen — deliberately minimal.
  *
- * Trong app thật, phần này thường đủ lớn để tách thành feature `profile`
- * riêng (đổi thông tin, sổ địa chỉ, ví, cài đặt thông báo). Ở đây nó nằm
- * nhờ trong `auth` vì chỉ có mỗi thông tin người dùng và nút đăng xuất.
+ * In a real app this part is usually big enough to become its own `profile` feature
+ * (editing details, the address book, the wallet, notification settings). Here it
+ * lodges inside `auth` because it is just the user's details and a sign-out button.
  *
- * Đó cũng là một bài học về ranh giới: đừng tách feature quá sớm. Tách khi
- * nó thật sự lớn lên, không phải vì sơ đồ kiến trúc trông cân đối hơn.
+ * That is a lesson about boundaries too: do not split a feature too early. Split it
+ * when it genuinely grows, not to make the architecture diagram look more balanced.
  */
 export function ProfileScreen() {
   const navigation = useNavigation();

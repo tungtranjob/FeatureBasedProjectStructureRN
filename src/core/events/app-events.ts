@@ -1,14 +1,14 @@
 /**
- * DANH MỤC SỰ KIỆN TOÀN APP — "hợp đồng" giữa các feature.
+ * THE APP-WIDE EVENT CATALOGUE — the "contract" between features.
  *
- * Đây là danh sách những chuyện có thể xảy ra trong app mà NHIỀU feature
- * cùng quan tâm. Nó cố tình nhỏ: nếu chỉ một feature quan tâm thì đừng
- * dùng event, cứ gọi hàm trực tiếp cho dễ đọc.
+ * This is the list of things that can happen in the app that MORE THAN ONE feature
+ * cares about. It is deliberately small: if only one feature cares, do not use an
+ * event — call the function directly, it reads better.
  *
- * Quy ước đặt tên: '<feature>:<chuyện đã xảy ra ở thì quá khứ>'.
- * Thì quá khứ rất quan trọng — event mô tả SỰ THẬT ĐÃ XẢY RA, không phải
- * mệnh lệnh. 'payment:succeeded' (đúng) vs 'clearCart' (sai — đó là lệnh,
- * và nó khiến payment phải biết cart tồn tại).
+ * Naming convention: '<feature>:<what happened, in the past tense>'.
+ * The past tense matters — an event describes A FACT THAT HAPPENED, not a
+ * command. 'payment:succeeded' (right) vs 'clearCart' (wrong — that is a command,
+ * and it forces payment to know that cart exists).
  */
 export type AppEvents = {
   'auth:logged-in': {userId: string};

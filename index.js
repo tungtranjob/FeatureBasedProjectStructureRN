@@ -1,8 +1,8 @@
 /**
- * Entry point của app.
+ * Entry point of the app.
  *
- * File này cố tình mỏng: nó chỉ đăng ký component gốc.
- * Mọi thứ khác (provider, navigation, bootstrap) nằm trong src/app/.
+ * This file is deliberately thin: it only registers the root component.
+ * Everything else (providers, navigation, bootstrap) lives in src/app/.
  */
 import 'react-native-gesture-handler';
 import {AppRegistry} from 'react-native';

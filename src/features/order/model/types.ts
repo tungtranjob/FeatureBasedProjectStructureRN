@@ -12,14 +12,14 @@ export type OrderStatus =
   | 'CANCELLED';
 
 /**
- * Bảng kê phí.
+ * The fee breakdown.
  *
- * Được định nghĩa ở feature order (chứ không phải shared/) vì nó là khái
- * niệm NGHIỆP VỤ, và order là feature sở hữu nó. Feature checkout import
- * kiểu này từ '@features/order' — phụ thuộc một chiều, hợp lệ.
+ * Defined in the order feature (not in shared/) because it is a DOMAIN concept and
+ * order is the feature that owns it. The checkout feature imports this type from
+ * '@features/order' — a one-way dependency, which is fine.
  *
- * Để nó ở shared/ sẽ tiện hơn một chút, nhưng đó là bước đầu tiên trên con
- * đường biến shared/ thành bãi rác chứa nửa số quy tắc nghiệp vụ của app.
+ * Putting it in shared/ would be slightly more convenient, but that is the first step
+ * down the road where shared/ becomes a dumping ground for half the app's business rules.
  */
 export interface FeeBreakdown {
   subtotal: Money;
@@ -34,7 +34,7 @@ export interface OrderItem {
   name: string;
   imageUrl: string;
   quantity: number;
-  /** Giá đã CHỐT lúc đặt — không đổi kể cả khi quán tăng giá sau đó. */
+  /** The price LOCKED at order time — unchanged even if the restaurant raises it later. */
   unitPrice: Money;
   optionNames: string[];
   note: string;

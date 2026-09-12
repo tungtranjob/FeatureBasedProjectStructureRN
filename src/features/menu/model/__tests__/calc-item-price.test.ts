@@ -5,8 +5,8 @@ import {calcLinePrice, calcUnitPrice, resolveSelectedOptions} from '../calc-item
 import type {MenuItem} from '../types';
 
 /**
- * Fixture dựng tay thay vì import từ mock db: test của model phải độc lập
- * với dữ liệu demo. Đổi giá trong db.ts không được làm đỏ test này.
+ * Fixtures are built by hand rather than imported from the mock db: model tests must be
+ * independent of the demo data. Changing a price in db.ts must not turn this test red.
  */
 const item: MenuItem = {
   id: asId<MenuItemId>('itm_test'),
@@ -62,7 +62,7 @@ describe('calcUnitPrice', () => {
   });
 
   it('bỏ qua option id không tồn tại thay vì ném lỗi', () => {
-    // Tình huống thật: quán vừa gỡ topping trong lúc app còn giữ giỏ cũ.
+    // A real scenario: the restaurant removed a topping while the app still holds an old cart.
     expect(calcUnitPrice(item, {grp_topping: ['opt_da_bi_go']})).toBe(65000);
   });
 });

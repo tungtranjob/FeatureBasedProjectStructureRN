@@ -16,8 +16,8 @@ export function useMenuItem(itemId: string | undefined) {
     queryFn: () => menuApi.getItem(itemId as string),
     enabled: Boolean(itemId),
     /**
-     * Menu ít đổi trong một phiên mua sắm -> để lâu hơn mặc định.
-     * staleTime là công cụ chính để cân bằng "dữ liệu mới" và "số request".
+     * A menu rarely changes during one shopping session -> keep it longer than the default.
+     * staleTime is the main lever for balancing "fresh data" against "number of requests".
      */
     staleTime: 5 * 60_000,
   });

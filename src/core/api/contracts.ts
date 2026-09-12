@@ -1,24 +1,24 @@
 /**
- * WIRE CONTRACTS — hình dạng JSON mà server trả về.
+ * WIRE CONTRACTS — the JSON shapes the server returns.
  *
- * Trong dự án thật, file này thường được SINH TỰ ĐỘNG từ OpenAPI/Swagger
- * (openapi-typescript, orval...) chứ không gõ tay.
+ * In a real project this file is usually GENERATED from OpenAPI/Swagger
+ * (openapi-typescript, orval, ...) rather than typed by hand.
  *
- * ⚠️ Điểm kiến trúc quan trọng nhất của file này:
- *    DTO (dữ liệu của server) KHÔNG PHẢI là domain model (dữ liệu của app).
+ * ⚠️ The most important architectural point in this file:
+ *    A DTO (the server's data) is NOT the domain model (the app's data).
  *
- * Mỗi feature sẽ có một mapper `dto -> model` ở tầng api/. Nghe có vẻ thừa,
- * nhưng nó mua cho bạn 3 thứ:
- *  1. Backend đổi tên field -> sửa 1 mapper, không phải sửa 30 component.
- *  2. App có kiểu chặt hơn server (Money, branded id, enum union) trong khi
- *     JSON chỉ có string/number.
- *  3. Ghép/bỏ field tuỳ nhu cầu UI mà không phải xin backend đổi API.
+ * Every feature has a `dto -> model` mapper in its api/ layer. It sounds like
+ * boilerplate, but it buys you three things:
+ *  1. Backend renames a field -> fix 1 mapper, not 30 components.
+ *  2. The app gets tighter types than the server (Money, branded ids, enum unions)
+ *     while the JSON only has strings and numbers.
+ *  3. Merge or drop fields to suit the UI without asking backend to change the API.
  *
- * Đặt ở core/ (không phải features/) vì đây là hợp đồng dùng chung, và vì
- * core/ không được phép import features/ — giữ chiều phụ thuộc luôn đúng.
+ * It lives in core/ (not features/) because it is a shared contract, and because
+ * core/ is not allowed to import features/ — which keeps the dependency direction right.
  */
 
-/* ------------------------------- Người dùng ------------------------------ */
+/* --------------------------------- Users --------------------------------- */
 
 export interface UserDto {
   id: string;
@@ -46,7 +46,7 @@ export interface AddressDto {
   isDefault: boolean;
 }
 
-/* ------------------------------- Nhà hàng -------------------------------- */
+/* ------------------------------ Restaurants ------------------------------ */
 
 export interface RestaurantDto {
   id: string;
@@ -59,10 +59,10 @@ export interface RestaurantDto {
   deliveryFee: number;
   minOrderAmount: number;
   etaMinutes: number;
-  /** Giờ mở/đóng cửa dạng 24h, VD 8 và 22. */
+  /** Opening/closing hours in 24h form, e.g. 8 and 22. */
   openHour: number;
   closeHour: number;
-  /** Nhà hàng tự tạm ngưng nhận đơn dù đang trong giờ mở cửa. */
+  /** The restaurant paused incoming orders even though it is within opening hours. */
   isPaused: boolean;
   promoLabel: string | null;
 }
@@ -78,7 +78,7 @@ export interface MenuOptionDto {
 export interface MenuOptionGroupDto {
   id: string;
   name: string;
-  /** Bắt buộc chọn (VD: chọn size) hay tuỳ chọn (VD: thêm topping). */
+  /** Required (e.g. pick a size) or optional (e.g. add toppings). */
   required: boolean;
   minSelect: number;
   maxSelect: number;
@@ -109,7 +109,7 @@ export interface MenuDto {
   sections: MenuSectionDto[];
 }
 
-/* ------------------------------- Khuyến mãi ------------------------------ */
+/* ------------------------------ Promotions ------------------------------- */
 
 export type DiscountTypeDto = 'PERCENT' | 'FIXED' | 'FREESHIP';
 
@@ -119,17 +119,17 @@ export interface VoucherDto {
   title: string;
   description: string;
   discountType: DiscountTypeDto;
-  /** PERCENT: 20 nghĩa là 20%. FIXED: số tiền. FREESHIP: bỏ qua. */
+  /** PERCENT: 20 means 20%. FIXED: an amount. FREESHIP: ignored. */
   value: number;
-  /** Trần giảm giá cho loại PERCENT. null = không giới hạn. */
+  /** Discount cap for the PERCENT type. null = no cap. */
   maxDiscount: number | null;
   minOrderAmount: number;
-  /** null = áp dụng mọi nhà hàng. */
+  /** null = applies to every restaurant. */
   restaurantId: string | null;
   expiresAt: string;
 }
 
-/* -------------------------------- Đơn hàng ------------------------------- */
+/* -------------------------------- Orders --------------------------------- */
 
 export type OrderStatusDto =
   | 'PENDING_PAYMENT'
@@ -155,7 +155,7 @@ export interface OrderItemDto {
   name: string;
   imageUrl: string;
   quantity: number;
-  /** Giá 1 phần ĐÃ gồm topping, CHỐT tại thời điểm đặt hàng. */
+  /** Unit price INCLUDING toppings, LOCKED at the time the order was placed. */
   unitPrice: number;
   optionNames: string[];
   note: string;
@@ -183,7 +183,7 @@ export interface OrderDto {
   statusHistory: OrderStatusEventDto[];
 }
 
-/** Body gửi lên khi đặt đơn. */
+/** Body sent when placing an order. */
 export interface PlaceOrderRequestDto {
   restaurantId: string;
   items: Array<{
@@ -196,20 +196,20 @@ export interface PlaceOrderRequestDto {
   voucherId: string | null;
   paymentMethod: PaymentMethodDto;
   /**
-   * ⚠️ IDEMPOTENCY KEY — client sinh ra, gửi kèm mỗi lần đặt đơn.
-   * Nếu mạng chập chờn và app retry, server nhận key trùng sẽ trả về đúng
-   * đơn cũ thay vì tạo đơn thứ hai. Không có nó, user bị trừ tiền 2 lần.
+   * ⚠️ IDEMPOTENCY KEY — generated by the client, sent with every order attempt.
+   * If the network flakes and the app retries, a server that sees a duplicate key
+   * returns the original order instead of creating a second one. Without it the user pays twice.
    */
   idempotencyKey: string;
 }
 
 export interface PlaceOrderResponseDto {
   order: OrderDto;
-  /** null khi thanh toán COD (không cần cổng thanh toán). */
+  /** null for COD (no payment gateway needed). */
   paymentIntent: PaymentIntentDto | null;
 }
 
-/* ------------------------------ Thanh toán ------------------------------- */
+/* -------------------------------- Payment -------------------------------- */
 
 export interface PaymentIntentDto {
   id: string;
@@ -217,12 +217,12 @@ export interface PaymentIntentDto {
   method: PaymentMethodDto;
   amount: number;
   status: PaymentStatusDto;
-  /** URL/deeplink để mở app cổng thanh toán. null với COD. */
+  /** URL/deeplink that opens the gateway app. null for COD. */
   redirectUrl: string | null;
   expiresAt: string;
 }
 
-/* ------------------------------- Báo giá phí ----------------------------- */
+/* ------------------------------- Fee quote ------------------------------- */
 
 export interface QuoteRequestDto {
   restaurantId: string;

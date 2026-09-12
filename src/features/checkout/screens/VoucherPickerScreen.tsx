@@ -9,17 +9,17 @@ import {useCheckoutDraft} from '../hooks/use-checkout-draft';
 import {useCheckoutStore} from '../store/checkout.store';
 
 /**
- * MÀN CHỌN VOUCHER — thuộc feature CHECKOUT, không phải PROMOTION.
+ * THE VOUCHER PICKER — it belongs to CHECKOUT, not PROMOTION.
  *
- * Lý do phân chia như vậy:
- *   promotion = "voucher là gì, dùng được không, giảm bao nhiêu" (dữ liệu
- *               + quy tắc + component VoucherCard).
- *   checkout  = "người dùng đang chọn voucher nào cho ĐƠN HÀNG NÀY" (state
- *               của luồng checkout).
+ * The reason for the split:
+ *   promotion = "what a voucher is, whether it is usable, how much it saves" (the data
+ *               + rules + the VoucherCard component).
+ *   checkout  = "which voucher the user is picking for THIS ORDER" (the state of the
+ *               checkout flow).
  *
- * Nếu đặt màn hình này trong promotion, nó sẽ phải ghi vào checkout store —
- * tức là promotion phụ thuộc ngược lại checkout, tạo phụ thuộc vòng.
- * Đặt ở checkout thì chiều phụ thuộc sạch sẽ: checkout -> promotion.
+ * If this screen lived in promotion, it would have to write into the checkout store —
+ * meaning promotion depends back on checkout, creating a dependency cycle.
+ * Keeping it in checkout leaves the direction clean: checkout -> promotion.
  */
 export function VoucherPickerScreen() {
   const navigation = useNavigation();

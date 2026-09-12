@@ -8,15 +8,15 @@ import {useCart} from '../hooks/use-cart';
 import {CartLineRow} from '../components/CartLineRow';
 
 /**
- * Màn giỏ hàng.
+ * The cart screen.
  *
- * Chú ý: ở đây CHỈ hiện tạm tính (subtotal), chưa có phí giao và giảm giá.
- * Vì sao? Phí giao phụ thuộc nhà hàng, giảm giá phụ thuộc voucher — cả hai
- * thuộc về bước checkout. Giỏ hàng cố tình giữ phạm vi hẹp: nó chỉ biết
- * "món gì, bao nhiêu phần".
+ * Note: it shows ONLY the subtotal, with no delivery fee and no discount.
+ * Why? The delivery fee depends on the restaurant and the discount depends on the
+ * voucher — both belong to checkout. The cart keeps its scope deliberately narrow:
+ * it only knows "which items, how many of each".
  *
- * Giữ phạm vi hẹp như vậy là lý do cart chạy được offline và không phải
- * phụ thuộc vào feature promotion hay checkout.
+ * Keeping the scope that narrow is why the cart works offline and does not depend
+ * on the promotion or checkout features.
  */
 export function CartScreen() {
   const navigation = useNavigation();

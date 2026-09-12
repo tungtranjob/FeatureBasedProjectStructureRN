@@ -1,4 +1,4 @@
-/** PUBLIC API của feature menu. */
+/** The menu feature's PUBLIC API. */
 export {MenuSectionList} from './components/MenuSectionList';
 export {ItemDetailScreen} from './screens/ItemDetailScreen';
 export {MENU_ROUTES} from './navigation/menu.routes';

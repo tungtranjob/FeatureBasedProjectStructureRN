@@ -1,15 +1,15 @@
 /**
- * PUBLIC API CỦA FEATURE CART.
+ * THE CART FEATURE'S PUBLIC API.
  *
- * ⚠️ `useCartStore` KHÔNG nằm ở đây, và đó là điều quan trọng nhất của file này.
+ * ⚠️ `useCartStore` is NOT here, and that is the most important thing about this file.
  *
- * Nếu feature khác chạm được vào store, sớm muộn sẽ có người gọi
- * `useCartStore.setState({cart: ...})` từ màn hình checkout để "sửa nhanh
- * một chút". Lúc đó các quy tắc trong cart-rules.ts bị đi vòng, và không ai
- * còn dám khẳng định giỏ hàng luôn ở trạng thái hợp lệ.
+ * If another feature could reach the store, sooner or later somebody would call
+ * `useCartStore.setState({cart: ...})` from the checkout screen as a "quick little
+ * fix". At that point the rules in cart-rules.ts are bypassed, and nobody can claim
+ * the cart is always in a valid state any more.
  *
- * Ngoại lệ: `getCartSnapshot` và `clearCart` cho code ngoài React tree
- * (app/bootstrap cần xoá giỏ sau khi thanh toán thành công).
+ * Exceptions: `getCartSnapshot` and `clearCart` for code outside the React tree
+ * (app/bootstrap needs to clear the cart after a successful payment).
  */
 export {CartFab} from './components/CartFab';
 export {CartScreen} from './screens/CartScreen';
@@ -21,8 +21,8 @@ export type {Cart, CartLine, AddToCartInput} from './model/types';
 import {useCartStore} from './store/cart.store';
 import type {Cart} from './model/types';
 
-/** Đọc giỏ hàng ngoài React tree (VD: trong event handler ở bootstrap). */
+/** Reads the cart outside the React tree (e.g. in a bootstrap event handler). */
 export const getCartSnapshot = (): Cart => useCartStore.getState().cart;
 
-/** Xoá giỏ hàng ngoài React tree. */
+/** Clears the cart outside the React tree. */
 export const clearCart = (): void => useCartStore.getState().clear();

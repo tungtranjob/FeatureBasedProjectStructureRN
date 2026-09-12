@@ -1,4 +1,4 @@
-/** Các kiểu dùng chung khi nói chuyện với server. */
+/** Shared types for talking to the server. */
 
 export interface Paginated<T> {
   items: T[];

@@ -69,7 +69,7 @@ describe('calcDiscount', () => {
   });
 
   it('PERCENT: bị chặn bởi trần giảm giá', () => {
-    // 20% của 500.000 = 100.000, nhưng trần là 30.000.
+    // 20% of 500.000 = 100.000, but the cap is 30.000.
     expect(calcDiscount(voucher(), params(500000), NOW)).toBe(30000);
   });
 
@@ -88,7 +88,7 @@ describe('calcDiscount', () => {
   });
 
   it('voucher không hợp lệ thì giảm 0 thay vì ném lỗi', () => {
-    // Quan trọng: hàm này chạy trong lúc render, ném lỗi là màn hình trắng.
+    // Important: this function runs during render, so throwing means a blank screen.
     expect(calcDiscount(voucher(), params(10000), NOW)).toBe(0);
   });
 });

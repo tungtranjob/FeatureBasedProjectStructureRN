@@ -4,7 +4,7 @@ import type {Money} from '../types/money';
 export const formatCurrency = (amount: Money | number): string =>
   `${Math.round(amount).toLocaleString('vi-VN')}đ`;
 
-/** Dùng cho phần chênh lệch của topping: +5.000đ / Miễn phí */
+/** Used for a topping's price delta: +5.000đ / Miễn phí */
 export const formatPriceDelta = (delta: number): string =>
   delta === 0 ? 'Miễn phí' : `+${formatCurrency(delta)}`;
 

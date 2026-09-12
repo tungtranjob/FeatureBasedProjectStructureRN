@@ -19,17 +19,17 @@ export function useOrder(id: string | undefined) {
     enabled: Boolean(id),
 
     /**
-     * ⭐ POLLING CÓ ĐIỀU KIỆN — kỹ thuật rất hữu ích cho màn theo dõi đơn.
+     * ⭐ CONDITIONAL POLLING — a very useful technique for an order tracking screen.
      *
-     * refetchInterval nhận được dữ liệu hiện tại, nên ta tự quyết định:
-     *   - Đơn đang chạy  -> hỏi lại mỗi 10 giây để thấy trạng thái nhảy.
-     *   - Đơn đã xong/huỷ -> false, ngừng hẳn.
+     * refetchInterval receives the current data, so we decide for ourselves:
+     *   - Order in progress -> re-ask every 10 seconds so the status visibly advances.
+     *   - Order done/cancelled -> false, stop entirely.
      *
-     * Nếu để một con số cố định, app sẽ ngốn pin và dữ liệu di động để hỏi
-     * lại mãi một đơn đã hoàn tất từ tuần trước.
+     * With a fixed number, the app would burn battery and mobile data re-asking about
+     * an order that completed last week.
      *
-     * (Production nên dùng WebSocket/push thay vì polling. Polling là giải
-     * pháp đơn giản và đủ tốt để khởi đầu.)
+     * (Production should use WebSockets/push instead of polling. Polling is the simple
+     * solution and it is good enough to start with.)
      */
     refetchInterval: query => {
       const order = query.state.data;
@@ -45,23 +45,23 @@ export function useCancelOrder() {
     mutationFn: (orderId: string) => orderApi.cancel(orderId),
     onSuccess: order => {
       /**
-       * Cập nhật cache trực tiếp bằng dữ liệu server vừa trả về, thay vì
-       * invalidate rồi gọi lại mạng. Kết quả: UI đổi ngay lập tức và tiết
-       * kiệm một request.
+       * Update the cache directly with the data the server just returned, instead of
+       * invalidating and making another network call. The result: the UI changes
+       * instantly and we save a request.
        */
       queryClient.setQueryData(orderKeys.detail(order.id), order);
-      // Danh sách thì invalidate, vì thứ tự/bộ lọc có thể đã khác.
+      // The list does get invalidated, because its order/filters may have changed.
       void queryClient.invalidateQueries({queryKey: orderKeys.lists()});
     },
   });
 }
 
 /**
- * Đặt đơn.
+ * Places an order.
  *
- * Đặt ở feature `order` (không phải `checkout`) vì đây là thao tác tạo ra
- * một Order, và order là feature sở hữu khái niệm đó cùng mapper của nó.
- * checkout chỉ gom dữ liệu rồi gọi hook này.
+ * It lives in the `order` feature (not `checkout`) because this is the operation that
+ * creates an Order, and order owns that concept along with its mapper.
+ * checkout only gathers the data and calls this hook.
  */
 export function usePlaceOrder() {
   const queryClient = useQueryClient();
@@ -78,8 +78,8 @@ export function usePlaceOrder() {
         total: order.fees.total,
       });
     },
-    // KHÔNG retry: xem ghi chú trong core/api/query-client.ts.
-    // An toàn duy nhất là retry kèm idempotencyKey, và ta để người dùng
-    // chủ động bấm lại thay vì tự động.
+    // NO retry: see the note in core/api/query-client.ts.
+    // The only safe retry is one carrying the idempotencyKey, and we let the user
+    // choose to tap again rather than doing it automatically.
   });
 }

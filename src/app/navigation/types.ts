@@ -9,15 +9,15 @@ import type {PaymentStackParamList} from '@features/payment';
 import type {OrderStackParamList} from '@features/order';
 
 /**
- * ⭐ HỢP NHẤT PARAM LIST CỦA TẤT CẢ FEATURE.
+ * ⭐ THE MERGED PARAM LIST OF EVERY FEATURE.
  *
- * Mỗi feature khai báo ParamList của riêng nó, ngay cạnh màn hình mà nó sở
- * hữu. File này chỉ GHÉP lại bằng phép giao (&).
+ * Each feature declares its own ParamList right next to the screens it owns.
+ * This file only JOINS them with an intersection (&).
  *
- * Lợi ích: thêm một màn hình mới KHÔNG cần sửa file type tập trung nào cả.
- * Bạn khai báo trong feature, và nó tự có mặt ở đây. Đây là khác biệt lớn
- * so với cách gõ tay toàn bộ ParamList vào một file — cách đó biến file
- * type thành điểm nghẽn merge conflict cho cả team.
+ * The benefit: adding a new screen requires NO edit to a central type file.
+ * You declare it in the feature and it shows up here automatically. That is a big
+ * difference from hand-writing the whole ParamList in one file — which turns the
+ * type file into a merge-conflict bottleneck for the whole team.
  */
 export type MainTabParamList = {
   Home: undefined;
@@ -37,18 +37,18 @@ export type RootStackParamList = {
   OrderStackParamList;
 
 /**
- * ⭐ GLOBAL TYPE AUGMENTATION — mẹo quan trọng cho feature-first.
+ * ⭐ GLOBAL TYPE AUGMENTATION — a key trick for feature-first code.
  *
- * Khai báo này khiến `useNavigation()` KHÔNG THAM SỐ cũng có kiểu đầy đủ ở
- * mọi nơi trong app.
+ * This declaration gives `useNavigation()` WITH NO TYPE ARGUMENT full typing
+ * everywhere in the app.
  *
- * Vì sao cần: feature KHÔNG được import từ app/ (dependency-cruiser chặn).
- * Nếu không có augmentation, mỗi màn hình trong feature sẽ phải viết
- * `useNavigation<NativeStackNavigationProp<RootStackParamList>>()` — mà
- * RootStackParamList thì nằm trong app/. Bế tắc.
+ * Why it is needed: features may NOT import from app/ (dependency-cruiser blocks it).
+ * Without the augmentation, every screen in a feature would have to write
+ * `useNavigation<NativeStackNavigationProp<RootStackParamList>>()` — and
+ * RootStackParamList lives in app/. Deadlock.
  *
- * Augmentation gỡ nút thắt đó: kiểu được "tiêm" vào toàn cục, feature chỉ
- * cần gọi `useNavigation()` và vẫn được kiểm tra kiểu đầy đủ.
+ * The augmentation unties that knot: the type is "injected" globally, so a feature
+ * only calls `useNavigation()` and still gets full type checking.
  */
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace

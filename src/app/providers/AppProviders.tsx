@@ -7,13 +7,13 @@ import {queryClient} from '@core/api/query-client';
 import {AppErrorBoundary} from './AppErrorBoundary';
 
 /**
- * Gom mọi provider vào một chỗ.
+ * Every provider gathered in one place.
  *
- * ⚠️ THỨ TỰ LỒNG NHAU CÓ Ý NGHĨA:
- *   GestureHandlerRootView phải ở ngoài cùng (yêu cầu của thư viện).
- *   ErrorBoundary đặt NGOÀI QueryClientProvider, để nó bắt được cả lỗi phát
- *   sinh từ chính provider bên trong.
- *   SafeAreaProvider phải bao ngoài mọi thứ dùng useSafeAreaInsets.
+ * ⚠️ THE NESTING ORDER MATTERS:
+ *   GestureHandlerRootView must be outermost (the library requires it).
+ *   ErrorBoundary sits OUTSIDE QueryClientProvider so it also catches errors thrown
+ *   by the inner providers themselves.
+ *   SafeAreaProvider must wrap anything that uses useSafeAreaInsets.
  */
 export function AppProviders({children}: {children: React.ReactNode}) {
   return (

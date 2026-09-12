@@ -1,8 +1,8 @@
 /**
- * Tên route dạng hằng số thay vì chuỗi rải rác.
+ * Route names as constants instead of strings scattered everywhere.
  *
- * `navigate(AUTH_ROUTES.Login)` gõ sai là TypeScript báo ngay;
- * `navigate('Login')` gõ sai thành 'Logn' thì chỉ chết lúc runtime.
+ * Mistype `navigate(AUTH_ROUTES.Login)` and TypeScript tells you immediately;
+ * mistype `navigate('Login')` as 'Logn' and it only breaks at runtime.
  */
 export const AUTH_ROUTES = {
   Login: 'Login',

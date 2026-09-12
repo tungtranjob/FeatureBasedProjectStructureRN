@@ -12,6 +12,6 @@ export interface DeliveryAddress {
   isDefault: boolean;
 }
 
-/** Gộp thành một dòng để hiện trong danh sách. */
+/** Joined into a single line for display in a list. */
 export const formatFullAddress = (address: DeliveryAddress): string =>
   [address.line, address.ward, address.district, address.city].join(', ');

@@ -6,11 +6,11 @@ import type {PaymentProvider} from './provider.types';
 import {vnpayProvider} from './vnpay/vnpay.provider';
 
 /**
- * BẢNG TRA PROVIDER.
+ * THE PROVIDER LOOKUP TABLE.
  *
- * `Record<PaymentMethod, PaymentProvider>` chứ không phải object thường:
- * thêm một giá trị vào union PaymentMethod mà quên viết provider thì
- * TypeScript báo lỗi biên dịch ngay. Compiler làm thay việc review.
+ * `Record<PaymentMethod, PaymentProvider>` rather than a plain object:
+ * add a value to the PaymentMethod union and forget to write its provider and
+ * TypeScript fails the build. The compiler does the review for you.
  */
 const PROVIDERS: Record<PaymentMethod, PaymentProvider> = {
   COD: codProvider,

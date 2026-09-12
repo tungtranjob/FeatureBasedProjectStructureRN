@@ -1,11 +1,11 @@
 import type {UserId} from '@shared/types/id';
 
 /**
- * DOMAIN MODEL của feature auth.
+ * The auth feature's DOMAIN MODEL.
  *
- * So với UserDto (contracts.ts): id ở đây là `UserId` (branded) chứ không
- * phải string trần, và ta bỏ hẳn những field UI không dùng. Đây là lợi ích
- * cụ thể của việc tách DTO và model.
+ * Compared with UserDto (contracts.ts): the id here is `UserId` (branded) rather
+ * than a bare string, and fields the UI never uses are dropped entirely. That is the
+ * concrete benefit of separating DTO from model.
  */
 export interface AuthUser {
   id: UserId;

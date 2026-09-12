@@ -3,7 +3,7 @@ import {StyleSheet, View, type StyleProp, type ViewStyle} from 'react-native';
 import {spacing} from '../theme';
 import {Txt} from './Txt';
 
-/** Hàng "nhãn — giá trị", dùng nhiều ở bảng kê phí. */
+/** A "label — value" row; used heavily in fee breakdowns. */
 export function LabelValueRow({
   label,
   value,

@@ -3,16 +3,16 @@ import {createJSONStorage, persist} from 'zustand/middleware';
 import {mmkvStorage} from '@core/storage/zustand-persist';
 
 /**
- * Địa chỉ giao hàng đang chọn.
+ * The currently selected delivery address.
  *
- * Chỉ lưu ID, KHÔNG lưu cả object địa chỉ. Đây là nguyên tắc quan trọng khi
- * trộn client state với server state:
+ * It stores only the ID, NOT the whole address object. This is an important rule when
+ * mixing client state with server state:
  *
- *   Client state giữ "người dùng đã CHỌN cái nào" (id).
- *   Server state giữ "cái đó có nội dung gì" (TanStack Query).
+ *   Client state holds "which one the user PICKED" (the id).
+ *   Server state holds "what that one contains" (TanStack Query).
  *
- * Nếu lưu cả object, người dùng sửa địa chỉ trên web xong quay lại app sẽ
- * thấy địa chỉ cũ mãi mãi — vì bản sao trong store không ai làm mới cả.
+ * If we stored the whole object, a user who edits the address on the web and comes back
+ * would see the old address forever — because nothing refreshes the copy in the store.
  */
 interface SelectedAddressState {
   selectedAddressId: string | null;

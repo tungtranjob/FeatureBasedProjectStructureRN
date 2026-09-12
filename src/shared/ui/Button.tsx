@@ -36,7 +36,7 @@ export function Button({
   style,
   testID,
 }: ButtonProps) {
-  // Đang loading thì cũng coi như disabled — chặn double-tap gửi 2 đơn hàng.
+  // While loading we treat it as disabled too — blocks a double tap from sending two orders.
   const isDisabled = disabled || loading;
   const palette = VARIANTS[variant];
 

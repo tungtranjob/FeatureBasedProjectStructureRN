@@ -5,9 +5,9 @@ import {ORDER_STATUS_EMOJI, ORDER_STATUS_LABEL} from '../model/order-rules';
 import type {OrderStatus} from '../model/types';
 
 /**
- * Màu theo trạng thái được khai báo thành BẢNG, không phải chuỗi if/else.
- * Thêm trạng thái mới vào union OrderStatus mà quên thêm màu -> TypeScript
- * báo lỗi ngay (vì Record đòi đủ mọi khoá).
+ * Status colours are declared as a TABLE, not an if/else chain.
+ * Add a new status to the OrderStatus union and forget its colour -> TypeScript
+ * complains immediately (because Record demands every key).
  */
 const STATUS_COLOR: Record<OrderStatus, {text: string; background: string}> = {
   PENDING_PAYMENT: {text: colors.warning, background: '#FEF3E2'},

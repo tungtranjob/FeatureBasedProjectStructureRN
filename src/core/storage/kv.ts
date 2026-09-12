@@ -1,22 +1,22 @@
 import {MMKV} from 'react-native-mmkv';
 
 /**
- * TẦNG TRỪU TƯỢNG CHO LƯU TRỮ CỤC BỘ — CHỈ 1 FILE NÀY BIẾT MMKV.
+ * THE LOCAL STORAGE ABSTRACTION — THIS IS THE ONLY FILE THAT KNOWS ABOUT MMKV.
  *
- * Tại sao phải bọc lại thay vì import MMKV khắp nơi:
- *  1. Đổi engine (MMKV -> AsyncStorage -> SQLite) chỉ sửa file này.
- *  2. Test: jest không chạy được native module; ở đây ta có thể thay bằng
- *     Map in-memory mà không đụng tới bất kỳ store nào.
- *  3. Bắt buộc phân tách vùng dữ liệu (xem `secureKv` bên dưới).
+ * Why wrap it instead of importing MMKV everywhere:
+ *  1. Swapping the engine (MMKV -> AsyncStorage -> SQLite) touches only this file.
+ *  2. Tests: jest cannot run native modules; here we can substitute an in-memory
+ *     Map without touching a single store.
+ *  3. It forces data to be partitioned (see `secureKv` below).
  */
 const storage = new MMKV({id: 'foodgo.default'});
 
 /**
- * Vùng riêng cho dữ liệu nhạy cảm (token).
+ * A separate partition for sensitive data (tokens).
  *
- * MMKV có hỗ trợ mã hoá. Trong app thật nên cân nhắc react-native-keychain
- * cho refresh token. Điều quan trọng về kiến trúc: token KHÔNG nằm chung
- * vùng với cart/lịch sử tìm kiếm, vì lúc logout ta xoá vùng này mà giữ vùng kia.
+ * MMKV supports encryption. A real app should consider react-native-keychain for
+ * the refresh token. The architectural point: tokens do NOT share a partition with
+ * the cart or search history, because on logout we wipe one and keep the other.
  */
 const secureStorage = new MMKV({
   id: 'foodgo.secure',
@@ -40,7 +40,7 @@ const wrap = (instance: MMKV): KvStore => ({
 export const kv = wrap(storage);
 export const secureKv = wrap(secureStorage);
 
-/** Helper đọc/ghi JSON có kiểu, nuốt lỗi parse để dữ liệu hỏng không làm crash app. */
+/** Typed JSON read/write helpers; parse errors are swallowed so corrupt data cannot crash the app. */
 export const kvJson = {
   read<T>(store: KvStore, key: string): T | undefined {
     const raw = store.getString(key);
@@ -50,7 +50,7 @@ export const kvJson = {
     try {
       return JSON.parse(raw) as T;
     } catch {
-      // Dữ liệu cũ không tương thích schema mới -> bỏ qua, coi như chưa có.
+      // Old data does not match the new schema -> ignore it, treat it as absent.
       store.delete(key);
       return undefined;
     }

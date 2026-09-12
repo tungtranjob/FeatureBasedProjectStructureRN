@@ -43,9 +43,9 @@ export function OptionGroupPicker({
             onPress={() => onToggle(option.id)}
             testID={`option-${option.id}`}
             style={({pressed}) => [styles.option, pressed && styles.pressed]}>
-            {/* Radio cho nhóm chọn-một, checkbox cho nhóm chọn-nhiều.
-                Đây là quy ước quen thuộc — dùng sai khiến user tưởng chọn
-                được nhiều trong khi thực tế chỉ được một. */}
+            {/* Radio for single-select groups, checkbox for multi-select ones.
+                This is the familiar convention — getting it wrong makes the user think
+                they can pick several when in fact they can pick only one. */}
             <View
               style={[
                 styles.indicator,

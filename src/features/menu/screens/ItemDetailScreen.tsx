@@ -4,7 +4,7 @@ import {useNavigation, useRoute, type RouteProp} from '@react-navigation/native'
 import {Button, Divider, ErrorView, QuantityStepper, Screen, Skeleton, Txt} from '@shared/ui';
 import {colors, radius, spacing} from '@shared/theme';
 import {formatCurrency} from '@shared/lib/format';
-// menu -> cart: phụ thuộc MỘT CHIỀU. cart không bao giờ import menu.
+// menu -> cart: a ONE-WAY dependency. cart never imports menu.
 import {useAddToCart} from '@features/cart';
 import {useMenuItem} from '../api/menu.queries';
 import {useItemCustomizer} from '../hooks/use-item-customizer';
@@ -28,19 +28,19 @@ export function ItemDetailScreen() {
     }
     customizer.markSubmitted();
     if (!customizer.isValid) {
-      return; // lỗi sẽ hiện ngay dưới nhóm tương ứng
+      return; // the error appears right under the matching group
     }
 
     const options = resolveSelectedOptions(item, customizer.selection);
 
     /**
-     * ⭐ CHỐT GIÁ TẠI THỜI ĐIỂM THÊM VÀO GIỎ.
+     * ⭐ THE PRICE IS LOCKED WHEN THE ITEM IS ADDED TO THE CART.
      *
-     * Ta gửi sang cart một "ảnh chụp" (snapshot) gồm tên + giá đã tính, chứ
-     * không gửi tham chiếu tới MenuItem. Hai lý do:
-     *  1. Giỏ hàng hoạt động offline — không thể đi hỏi lại menu.
-     *  2. Quán đổi giá lúc nửa đêm không được làm giỏ hàng của user nhảy số.
-     * (Server vẫn tính lại giá khi đặt đơn — snapshot này chỉ phục vụ UI.)
+     * We hand cart a snapshot with the name + computed price rather than a reference
+     * to the MenuItem. Two reasons:
+     *  1. The cart works offline — it cannot go back and ask the menu.
+     *  2. A restaurant changing prices at midnight must not make the user's cart jump.
+     * (The server still recomputes the price when the order is placed — this snapshot is only for the UI.)
      */
     addToCart({
       restaurantId: params.restaurantId,
@@ -122,7 +122,7 @@ export function ItemDetailScreen() {
         </View>
       </ScrollView>
 
-      {/* Thanh dính đáy: số lượng + nút thêm vào giỏ */}
+      {/* Bottom-pinned bar: quantity + add-to-cart button */}
       <View style={styles.bottomBar}>
         <QuantityStepper
           value={customizer.quantity}

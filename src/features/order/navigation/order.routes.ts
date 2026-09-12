@@ -8,7 +8,7 @@ export type OrderStackParamList = {
   [ORDER_ROUTES.OrderDetail]: {orderId: string; highlightPayment?: boolean};
 };
 
-/** Deep link: foodgo://order/<id> — dùng trong push notification. */
+/** Deep link: foodgo://order/<id> — used by push notifications. */
 export const orderLinking = {
   [ORDER_ROUTES.OrderDetail]: 'order/:orderId',
 };

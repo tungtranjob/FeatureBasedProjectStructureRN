@@ -4,9 +4,9 @@
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "baseUrl": "./src",
-    /* Alias phải khai báo Ở CẢ 2 NƠI: tsconfig (cho TS hiểu) và
-       babel.config.js (cho Metro bundle được lúc runtime). Quên 1 trong 2
-       là lỗi "module not found" lúc chạy dù IDE vẫn xanh. */
+    /* Aliases must be declared in BOTH places: tsconfig (so TS understands them)
+       and babel.config.js (so Metro can bundle them at runtime). Forgetting either
+       one gives a "module not found" error at runtime while the IDE stays green. */
     "paths": {
       "@app/*":      ["app/*"],
       "@core/*":     ["core/*"],

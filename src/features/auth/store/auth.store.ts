@@ -5,19 +5,19 @@ import {appEventBus} from '@core/events/app-event-bus';
 import type {AuthStatus, Session} from '../model/types';
 
 /**
- * AUTH STORE — ví dụ về CLIENT STATE (Zustand), không phải server state.
+ * THE AUTH STORE — an example of CLIENT STATE (Zustand), not server state.
  *
- * Vì sao phiên đăng nhập không dùng TanStack Query: nó không phải dữ liệu
- * ta "lấy về rồi cache". Nó là trạng thái app tự nắm giữ, quyết định luôn
- * cả cây navigation, và phải tồn tại qua các lần khởi động app.
+ * Why the session does not use TanStack Query: it is not data we "fetch and cache".
+ * It is state the app owns itself, it decides the whole navigation tree, and it has
+ * to survive app restarts.
  *
- * Lưu ở vùng `secure` chứ không phải vùng thường — token không nằm chung
- * chỗ với giỏ hàng.
+ * Stored in the `secure` partition rather than the normal one — tokens do not share
+ * space with the cart.
  */
 interface AuthState {
   session: Session | null;
   status: AuthStatus;
-  /** Đã đọc xong dữ liệu persist chưa — tránh nháy màn Login lúc khởi động. */
+  /** Whether persisted data has been read — avoids flashing Login at startup. */
   hasHydrated: boolean;
 
   setSession: (session: Session) => void;
@@ -39,9 +39,9 @@ export const useAuthStore = create<AuthState>()(
 
       logout: () => {
         set({session: null, status: 'unauthenticated'});
-        // Phát event thay vì tự tay xoá giỏ hàng ở đây.
-        // auth KHÔNG được biết cart tồn tại — xem app/bootstrap để thấy
-        // ai lắng nghe event này.
+        // Emit an event instead of clearing the cart by hand here.
+        // auth must NOT know that cart exists — see app/bootstrap for who
+        // listens to this event.
         appEventBus.emit('auth:logged-out', undefined);
       },
 
@@ -50,9 +50,9 @@ export const useAuthStore = create<AuthState>()(
     {
       name: 'foodgo.auth',
       storage: createJSONStorage(() => secureMmkvStorage),
-      /** Chỉ persist session; `hasHydrated` là state tạm của lần chạy này. */
+      /** Persist only the session; `hasHydrated` is per-run temporary state. */
       partialize: state => ({session: state.session}),
-      /** Khôi phục `status` từ session sau khi đọc storage xong. */
+      /** Restore `status` from the session once storage has been read. */
       onRehydrateStorage: () => (state, error) => {
         if (error) {
           state?.setHasHydrated(true);
@@ -69,10 +69,10 @@ export const useAuthStore = create<AuthState>()(
 );
 
 /**
- * Selector nguyên thuỷ (primitive) — trả về string/boolean thay vì object.
+ * Primitive selectors — they return a string/boolean instead of an object.
  *
- * Vì sao quan trọng: zustand so sánh bằng Object.is. Nếu selector trả về
- * object mới mỗi lần, component sẽ re-render vô ích ở MỌI thay đổi của store.
+ * Why it matters: zustand compares with Object.is. If a selector returns a new
+ * object every time, the component re-renders pointlessly on EVERY store change.
  */
 export const selectAccessToken = (state: AuthState): string | null =>
   state.session?.accessToken ?? null;

@@ -14,10 +14,10 @@ interface SkeletonProps {
 }
 
 /**
- * Khung xương lúc đang tải.
+ * Placeholder shown while loading.
  *
- * Dùng skeleton thay vì spinner toàn màn hình vì nó giữ nguyên bố cục —
- * nội dung thật hiện ra không làm layout nhảy, cảm giác nhanh hơn thật sự.
+ * We use a skeleton instead of a full-screen spinner because it preserves the layout —
+ * the real content appears without the layout jumping, which feels faster than it is.
  */
 export function Skeleton({width = '100%', height = 16, style}: SkeletonProps) {
   const opacity = useRef(new Animated.Value(0.4)).current;

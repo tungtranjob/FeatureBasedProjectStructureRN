@@ -6,12 +6,12 @@ export type MenuStackParamList = {
   [MENU_ROUTES.ItemDetail]: {
     itemId: string;
     /**
-     * Tên nhà hàng được TRUYỀN QUA PARAM thay vì để menu tự đi hỏi feature
-     * restaurant.
+     * The restaurant name is PASSED AS A PARAM rather than having menu ask the
+     * restaurant feature.
      *
-     * Lý do kiến trúc: restaurant đã import MenuSectionList rồi. Nếu menu
-     * quay lại import restaurant thì hai feature phụ thuộc vòng tròn —
-     * dependency-cruiser sẽ chặn, và đúng là nên chặn.
+     * The architectural reason: restaurant already imports MenuSectionList. If menu
+     * imported restaurant back, the two features would depend on each other in a cycle —
+     * dependency-cruiser would block it, and rightly so.
      */
     restaurantId: string;
     restaurantName: string;

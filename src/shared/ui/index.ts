@@ -1,8 +1,8 @@
 /**
- * Public API của design system.
+ * Public API of the design system.
  *
- * Feature import từ '@shared/ui', không bao giờ import thẳng file bên trong.
- * Nhờ vậy ta có thể đổi cấu trúc thư mục ui/ mà không đụng tới feature nào.
+ * Features import from '@shared/ui' and never reach into the files directly.
+ * That way we can reshape the ui/ folder without touching a single feature.
  */
 export {Badge} from './Badge';
 export {Button} from './Button';

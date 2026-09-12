@@ -3,25 +3,25 @@ import {createJSONStorage, persist} from 'zustand/middleware';
 import {mmkvStorage} from '@core/storage/zustand-persist';
 
 /**
- * ⭐⭐ STORE QUAN TRỌNG NHẤT TRONG APP VỀ MẶT ĐỘ TIN CẬY.
+ * ⭐⭐ THE MOST RELIABILITY-CRITICAL STORE IN THE APP.
  *
- * Nó lưu "đang có giao dịch nào dang dở" và BẮT BUỘC phải persist.
+ * It holds "is there a transaction in flight" and MUST be persisted.
  *
- * Vì sao bắt buộc: khi người dùng bấm thanh toán MoMo, app ta bị đẩy ra nền.
- * Android trên máy RAM thấp GIẾT app ta trong lúc đó khá thường xuyên. Khi
- * người dùng quay lại, app khởi động LẠI TỪ ĐẦU — mọi state trong RAM đã mất.
+ * Why it must: when the user taps pay with MoMo, our app is pushed to the background.
+ * Android on a low-RAM device KILLS our app while they are away fairly often. When
+ * they return, the app starts FROM SCRATCH — all in-memory state is gone.
  *
- * Nếu không persist: app mở lên sạch trơn, không biết có giao dịch nào đang
- * chờ. Người dùng đã bị trừ tiền nhưng app hiển thị giỏ hàng như chưa có gì
- * xảy ra. Đây là lớp bug tệ nhất trong app thanh toán.
+ * Without persistence: the app opens blank, unaware that a transaction is pending.
+ * The user has been charged but the app shows the cart as if nothing happened.
+ * This is the worst class of bug in a payment app.
  *
- * Persist rồi thì lúc cold start ta thấy pendingIntentId, hỏi lại server,
- * và xử lý đúng.
+ * With persistence, a cold start finds pendingIntentId, asks the server again, and
+ * handles it correctly.
  */
 interface PaymentState {
   pendingIntentId: string | null;
   pendingOrderId: string | null;
-  /** Mốc thời gian để phát hiện giao dịch treo quá lâu. */
+  /** A timestamp for detecting a transaction that has hung for too long. */
   startedAt: number | null;
 
   setPending: (params: {intentId: string; orderId: string}) => void;

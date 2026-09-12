@@ -1,9 +1,9 @@
 /**
- * PUBLIC API của feature promotion.
+ * The promotion feature's PUBLIC API.
  *
- * Feature checkout dùng những thứ này để hiện danh sách voucher và tính
- * giảm giá. Nó KHÔNG biết voucher được lấy về từ endpoint nào, cache bao
- * lâu, hay quy tắc PERCENT có trần giảm giá ra sao.
+ * The checkout feature uses these to list vouchers and compute the discount.
+ * It does NOT know which endpoint vouchers come from, how long they are cached,
+ * or how the PERCENT rule caps the discount.
  */
 export {useVouchers} from './api/promotion.queries';
 export {VoucherCard} from './components/VoucherCard';

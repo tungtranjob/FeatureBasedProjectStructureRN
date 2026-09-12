@@ -6,13 +6,13 @@ const MOMO_SCHEME = 'momo://';
 const MOMO_STORE_URL = 'https://momo.vn/download';
 
 /**
- * PROVIDER MOMO — luồng chuyển hướng sang app khác.
+ * THE MOMO PROVIDER — the redirect-to-another-app flow.
  *
- * Đây là loại provider khó nhất trên mobile, vì nó làm app của ta MẤT
- * QUYỀN ĐIỀU KHIỂN: người dùng rời đi, và hệ điều hành có thể giết app
- * trong lúc đó (đặc biệt là Android với máy RAM thấp).
+ * This is the hardest kind of provider on mobile, because it makes our app LOSE
+ * CONTROL: the user leaves, and the OS may kill the app while they are away
+ * (especially Android on a low-RAM device).
  *
- * Xem use-payment-return.ts để biết ta lấy lại kết quả bằng cách nào.
+ * See use-payment-return.ts for how we recover the result.
  */
 export const momoProvider: PaymentProvider = {
   method: 'MOMO',
@@ -21,8 +21,8 @@ export const momoProvider: PaymentProvider = {
     try {
       return await Linking.canOpenURL(MOMO_SCHEME);
     } catch {
-      // iOS trả về false nếu scheme chưa khai báo trong LSApplicationQueriesSchemes.
-      // Đừng để lỗi này làm sập màn chọn thanh toán.
+      // iOS returns false if the scheme is not declared in LSApplicationQueriesSchemes.
+      // Do not let that error take down the payment method picker.
       return false;
     }
   },
@@ -33,11 +33,11 @@ export const momoProvider: PaymentProvider = {
     }
 
     /**
-     * TRONG BẢN DEMO NÀY: mock server trả về scheme giả `mock-gateway://`
-     * mà máy không mở được. Ta phát hiện điều đó và trả về 'redirected'
-     * luôn, để màn PaymentProcessing hiện ra và bạn tự bấm nút mô phỏng.
+     * IN THIS DEMO: the mock server returns a fake `mock-gateway://` scheme that the
+     * device cannot open. We detect that and return 'redirected' anyway, so the
+     * PaymentProcessing screen appears and you can press the simulate button yourself.
      *
-     * Trong app thật, hãy xoá nhánh này.
+     * In a real app, delete this branch.
      */
     if (intent.redirectUrl.startsWith('mock-gateway://')) {
       logger.info('MoMo', 'Chế độ mock: bỏ qua bước mở app MoMo');
@@ -46,7 +46,7 @@ export const momoProvider: PaymentProvider = {
 
     const canOpen = await Linking.canOpenURL(intent.redirectUrl);
     if (!canOpen) {
-      // Chưa cài app MoMo -> đẩy sang store thay vì báo lỗi cụt lủn.
+      // MoMo is not installed -> send them to the store rather than a blunt error.
       await Linking.openURL(MOMO_STORE_URL);
       return {status: 'aborted', reason: 'Bạn chưa cài ứng dụng MoMo'};
     }

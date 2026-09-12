@@ -2,23 +2,23 @@ import {clampToZero, money, type Money} from '@shared/types/money';
 import type {FeeBreakdown} from '@features/order';
 
 /**
- * ⚠️ TÍNH PHÍ Ở PHÍA CLIENT — CHỈ ĐỂ HIỂN THỊ TỨC THÌ.
+ * ⚠️ CLIENT-SIDE FEE CALCULATION — FOR INSTANT DISPLAY ONLY.
  *
- * Logic này TRÙNG với logic ở server (xem core/api/mock/handlers.ts).
- * Trùng lặp có chủ đích, và cần hiểu rõ vì sao:
+ * This logic DUPLICATES the server's (see core/api/mock/handlers.ts).
+ * The duplication is deliberate, and it is worth understanding why:
  *
- *   Vì sao vẫn tính ở client: người dùng bật/tắt voucher hay đổi số lượng
- *   phải thấy tổng tiền đổi NGAY LẬP TỨC. Chờ round-trip mạng 300ms mỗi
- *   lần chạm là trải nghiệm tệ.
+ *   Why compute on the client at all: a user toggling a voucher or changing a quantity
+ *   must see the total change IMMEDIATELY. Waiting for a 300ms network round trip on
+ *   every tap is a poor experience.
  *
- *   Vì sao server VẪN PHẢI tính lại: con số từ client không bao giờ đáng
- *   tin. Ai cũng sửa được request. Đơn hàng thật luôn dùng số của server.
+ *   Why the server MUST still recompute: numbers from the client are never
+ *   trustworthy. Anyone can edit the request. A real order always uses the server's numbers.
  *
- *   Khi hai bên lệch nhau: số của SERVER thắng. Xem use-checkout-draft.ts —
- *   nó ưu tiên bảng phí do server báo giá ngay khi có.
+ *   When the two disagree: the SERVER wins. See use-checkout-draft.ts — it prefers
+ *   the server-quoted breakdown as soon as it arrives.
  *
- * Đây là mẫu "optimistic UI": đoán trước cho mượt, nhưng luôn nhường sự
- * thật cho server.
+ * This is the "optimistic UI" pattern: guess ahead for smoothness, but always defer
+ * to the server for the truth.
  */
 
 const SERVICE_FEE_RATE = 0.03;
@@ -48,7 +48,7 @@ export const calcOrderTotal = (params: {
   };
 };
 
-/** Bảng phí rỗng — dùng khi chưa có dữ liệu, tránh phải xử lý null ở UI. */
+/** An empty breakdown — used before data arrives, so the UI never has to handle null. */
 export const EMPTY_FEES: FeeBreakdown = {
   subtotal: money(0),
   deliveryFee: money(0),

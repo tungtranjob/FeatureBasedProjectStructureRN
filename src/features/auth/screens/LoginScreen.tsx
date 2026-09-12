@@ -7,14 +7,14 @@ import {useLogin} from '../hooks/use-auth';
 import {isValidOtp, isValidVietnamesePhone, normalizePhone} from '../model/validate-phone';
 
 /**
- * MÀN HÌNH CHỈ LÀM 3 VIỆC: đọc state, vẽ, gửi hành động đi.
+ * A SCREEN DOES ONLY THREE THINGS: read state, render, dispatch actions.
  *
- * Chú ý những gì KHÔNG có ở đây: không gọi fetch, không tự lưu token, không
- * kiểm tra định dạng số điện thoại bằng regex viết tại chỗ. Tất cả nằm ở
- * model/ và hooks/, nơi chúng test được mà không cần render.
+ * Note what is NOT here: no fetch call, no token storage, no phone-number regex
+ * written inline. All of that lives in model/ and hooks/, where it can be tested
+ * without rendering anything.
  *
- * `useState` ở đây là hợp lệ vì đó là state CỦA FORM (chữ đang gõ dở),
- * chỉ sống trong màn hình này. State nghiệp vụ thì không được để ở đây.
+ * `useState` is legitimate here because this is FORM state (the text being typed),
+ * which only lives in this screen. Domain state does not belong here.
  */
 export function LoginScreen() {
   const [phone, setPhone] = useState('0901234567');

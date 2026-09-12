@@ -14,15 +14,15 @@ interface MenuSectionListProps {
 }
 
 /**
- * ⭐ COMPONENT NÀY LÀ PUBLIC API CỦA FEATURE MENU.
+ * ⭐ THIS COMPONENT IS THE MENU FEATURE'S PUBLIC API.
  *
- * Feature restaurant nhúng nó vào màn chi tiết nhà hàng mà KHÔNG cần biết
- * menu lấy dữ liệu ra sao, cache thế nào, hay có bao nhiêu component con.
- * Nó chỉ truyền vào 3 props và nhận lại một khối UI hoàn chỉnh.
+ * The restaurant feature embeds it in the restaurant detail screen WITHOUT needing to
+ * know how menu fetches its data, how it caches, or how many child components it has.
+ * It passes 3 props and gets back a complete block of UI.
  *
- * Đây là kiểu "component tự đi lấy dữ liệu của mình" (self-fetching).
- * Trên mobile nó thường tốt hơn prop-drilling, vì màn hình cha không phải
- * gánh dữ liệu của con và không phải re-render khi dữ liệu con thay đổi.
+ * This is the "self-fetching component" style.
+ * On mobile it usually beats prop-drilling, because the parent screen does not have to
+ * carry the child's data and does not re-render when that data changes.
  */
 export function MenuSectionList({
   restaurantId,

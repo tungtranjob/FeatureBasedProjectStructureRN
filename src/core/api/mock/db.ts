@@ -9,21 +9,21 @@ import type {
 } from '../contracts';
 
 /**
- * "CƠ SỞ DỮ LIỆU" GIẢ LẬP.
+ * THE FAKE "DATABASE".
  *
- * Đây là toàn bộ dummy data của app. Nó nằm trong core/api/mock/ chứ không
- * rải rác trong từng feature — có chủ đích:
- *  - Xoá cả thư mục mock/ là app sạch bóng dữ liệu giả.
- *  - Feature không biết mock tồn tại; nó chỉ gọi http.get() như bình thường.
+ * This is all of the app's dummy data. It lives in core/api/mock/ rather than being
+ * scattered across features, on purpose:
+ *  - Delete the mock/ folder and the app is free of fake data.
+ *  - Features do not know the mock exists; they just call http.get() as usual.
  *
- * Các bảng `orders` và `paymentIntents` là MUTABLE vì đặt đơn/thanh toán
- * thực sự làm thay đổi trạng thái — nhờ vậy demo chạy được cả vòng đời
- * đặt món -> thanh toán -> theo dõi đơn.
+ * The `orders` and `paymentIntents` tables are MUTABLE because placing an order and
+ * paying really do change state — which lets the demo run the whole lifecycle from
+ * ordering -> paying -> tracking.
  */
 
 const img = (seed: string) => `https://picsum.photos/seed/${seed}/640/420`;
 
-/* ------------------------------ Người dùng ------------------------------- */
+/* --------------------------------- Users --------------------------------- */
 
 export const mockUser: UserDto = {
   id: 'usr_01',
@@ -58,7 +58,7 @@ export const mockAddresses: AddressDto[] = [
   },
 ];
 
-/* -------------------------------- Nhà hàng ------------------------------- */
+/* ------------------------------ Restaurants ------------------------------ */
 
 export const mockRestaurants: RestaurantDto[] = [
   {
@@ -152,7 +152,7 @@ export const mockRestaurants: RestaurantDto[] = [
     deliveryFee: 16000,
     minOrderAmount: 35000,
     etaMinutes: 22,
-    // Quán này ĐANG TẠM NGƯNG — để demo trạng thái "không đặt được".
+    // This place is CURRENTLY PAUSED — it demos the "cannot order" state.
     openHour: 14,
     closeHour: 23,
     isPaused: true,
@@ -162,7 +162,7 @@ export const mockRestaurants: RestaurantDto[] = [
 
 /* --------------------------------- Menu ---------------------------------- */
 
-/** Nhóm tuỳ chọn hay dùng lại — khai báo 1 lần cho gọn. */
+/** Frequently reused option groups — declared once for brevity. */
 const sizeGroup = (deltas: [number, number, number]) => ({
   id: 'grp_size',
   name: 'Chọn size',
@@ -250,7 +250,7 @@ export const mockMenuItems: MenuItemDto[] = [
     description: 'Ly 350ml.',
     imageUrl: img('tra-da'),
     basePrice: 5000,
-    // Món HẾT HÀNG — demo trạng thái disabled trong UI.
+    // A SOLD OUT item — demos the disabled state in the UI.
     isAvailable: false,
     soldCount: 5400,
     optionGroups: [],
@@ -418,7 +418,7 @@ export const mockMenuItems: MenuItemDto[] = [
   },
 ];
 
-/** Tên hiển thị của danh mục. Server thật sẽ có bảng riêng. */
+/** Display names for categories. A real server would have its own table. */
 export const mockCategoryNames: Record<string, string> = {
   cat_pho: 'Phở',
   cat_bun: 'Bún',
@@ -431,7 +431,7 @@ export const mockCategoryNames: Record<string, string> = {
   cat_do_uong: 'Đồ uống',
 };
 
-/* ------------------------------ Khuyến mãi ------------------------------- */
+/* ------------------------------ Promotions ------------------------------- */
 
 const inDays = (days: number) =>
   new Date(Date.now() + days * 86_400_000).toISOString();
@@ -470,7 +470,7 @@ export const mockVouchers: VoucherDto[] = [
     value: 50000,
     maxDiscount: null,
     minOrderAmount: 200000,
-    // Voucher GIỚI HẠN nhà hàng — demo logic kiểm tra điều kiện.
+    // A voucher LIMITED to one restaurant — demos the eligibility checks.
     restaurantId: 'res_pho_thin',
     expiresAt: inDays(14),
   },
@@ -488,18 +488,18 @@ export const mockVouchers: VoucherDto[] = [
   },
 ];
 
-/* ------------------ Bảng có thể thay đổi lúc chạy ------------------------ */
+/* --------------------- Tables that change at runtime --------------------- */
 
 /**
- * Đơn hàng và payment intent được TẠO MỚI khi bạn bấm đặt hàng, nên hai
- * mảng này mutable. Đây là lý do mock server này hữu ích hơn file JSON tĩnh:
- * nó giữ được trạng thái, cho phép chạy hết vòng đời nghiệp vụ.
+ * Orders and payment intents are CREATED when you tap place-order, so these two
+ * arrays are mutable. That is why this mock server beats a static JSON file:
+ * it holds state, which lets you run the full business lifecycle.
  */
 export const mockDb = {
   orders: [] as OrderDto[],
   paymentIntents: [] as PaymentIntentDto[],
-  /** Ánh xạ idempotencyKey -> orderId, để retry không tạo đơn trùng. */
+  /** Maps idempotencyKey -> orderId, so a retry does not create a duplicate order. */
   idempotency: new Map<string, string>(),
-  /** Số thứ tự sinh mã đơn dạng FG-0001. */
+  /** Counter behind order codes of the form FG-0001. */
   orderSeq: 0,
 };

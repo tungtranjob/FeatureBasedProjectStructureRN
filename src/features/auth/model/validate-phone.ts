@@ -1,8 +1,8 @@
 /**
- * Logic thuần — không React, không RN. Test được bằng jest trong ~1ms.
+ * Pure logic — no React, no RN. Testable with jest in about 1ms.
  *
- * Đây chính là lý do tồn tại của thư mục model/: tách phần "suy nghĩ" ra
- * khỏi phần "vẽ", để phần suy nghĩ kiểm thử được dễ dàng.
+ * This is exactly why the model/ folder exists: separate the "thinking" from the
+ * "drawing", so the thinking is easy to test.
  */
 export const normalizePhone = (raw: string): string =>
   raw.replace(/[^0-9+]/g, '').replace(/^\+84/, '0');

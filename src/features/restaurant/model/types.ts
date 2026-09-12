@@ -18,5 +18,5 @@ export interface Restaurant {
   promoLabel: string | null;
 }
 
-/** Trạng thái nhận đơn — tính ra từ giờ mở cửa + cờ tạm ngưng. */
+/** Order-taking status — derived from opening hours + the pause flag. */
 export type RestaurantAvailability = 'open' | 'closed' | 'paused';

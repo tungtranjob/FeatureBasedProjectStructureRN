@@ -11,13 +11,13 @@ export type PaymentStackParamList = {
 };
 
 /**
- * CẤU HÌNH DEEP LINK CỦA RIÊNG FEATURE PAYMENT.
+ * THE PAYMENT FEATURE'S OWN DEEP LINK CONFIG.
  *
- * app/navigation/linking.config.ts sẽ gom mảnh này cùng mảnh của các feature
- * khác. Nhờ vậy khai báo deep link nằm cạnh màn hình xử lý nó, thay vì nằm
- * trong một file cấu hình khổng lồ ở tận đâu.
+ * app/navigation/linking.config.ts gathers this fragment together with the other
+ * features'. That keeps the deep link declaration next to the screen that handles it,
+ * instead of in one giant config file somewhere far away.
  *
- * Cần khai báo thêm ở native:
+ * Extra native declarations required:
  *   iOS     — Info.plist > CFBundleURLTypes (scheme "foodgo")
  *   Android — AndroidManifest.xml > intent-filter
  */

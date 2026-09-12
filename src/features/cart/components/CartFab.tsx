@@ -8,14 +8,14 @@ import {useCartStore, selectItemCount, selectSubtotal} from '../store/cart.store
 import {CART_ROUTES} from '../navigation/cart.routes';
 
 /**
- * Nút giỏ hàng nổi, hiện trên mọi màn hình mua sắm.
+ * The floating cart button, shown on every shopping screen.
  *
- * ⭐ Component này TỰ ĐỌC store thay vì nhận props.
+ * ⭐ This component READS THE STORE ITSELF instead of taking props.
  *
- * Đó là quyết định có chủ đích: nếu nhận props, mọi màn hình nhúng nó đều
- * phải subscribe vào cart store và re-render theo — tức là cả FlatList
- * hàng trăm dòng cũng render lại chỉ vì badge đổi số. Đọc store tại chỗ
- * khoanh vùng re-render lại đúng trong component này.
+ * That is a deliberate decision: with props, every screen embedding it would have to
+ * subscribe to the cart store and re-render along with it — meaning a FlatList of
+ * hundreds of rows re-renders just because the badge number changed. Reading the
+ * store here confines the re-render to this component.
  */
 export function CartFab() {
   const navigation = useNavigation();

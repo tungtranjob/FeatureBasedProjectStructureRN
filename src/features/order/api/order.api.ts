@@ -13,7 +13,7 @@ import type {PaymentIntent} from '@features/payment';
 import type {FeeBreakdown, Order} from '../model/types';
 
 /**
- * Mapper cho bảng kê phí — dùng lại ở cả báo giá (quote) lẫn đơn hàng.
+ * The fee breakdown mapper — reused by both the quote and the order.
  */
 export const toFeeBreakdown = (dto: FeeBreakdownDto): FeeBreakdown => ({
   subtotal: money(dto.subtotal),
@@ -78,7 +78,7 @@ export const orderApi = {
     return toOrder(dto);
   },
 
-  /** Báo giá phí trước khi đặt — server là nguồn sự thật về tiền. */
+  /** Quotes the fees before ordering — the server is the source of truth for money. */
   async quote(request: QuoteRequestDto): Promise<FeeBreakdown> {
     const dto = await http.post<FeeBreakdownDto>('/quote', request);
     return toFeeBreakdown(dto);

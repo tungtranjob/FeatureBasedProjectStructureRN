@@ -11,7 +11,7 @@ interface SelectorRowProps {
   onPress: () => void;
 }
 
-/** Hàng "chạm để chọn" — dùng cho địa chỉ và voucher. */
+/** A "tap to choose" row — used for the address and the voucher. */
 export function SelectorRow({
   icon,
   title,

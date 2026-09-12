@@ -1,32 +1,32 @@
 import type {PaymentIntent, PaymentLaunchResult, PaymentMethod} from '../model/types';
 
 /**
- * ⭐ CỔNG (PORT) CHUNG CHO MỌI NHÀ CUNG CẤP THANH TOÁN.
+ * ⭐ THE SHARED PORT FOR EVERY PAYMENT PROVIDER.
  *
- * Mỗi cổng thanh toán (MoMo, VNPay, Stripe...) có SDK và cách hoạt động
- * hoàn toàn khác nhau. Interface này là chỗ duy nhất phần còn lại của app
- * nhìn thấy — nó biến sự khác biệt đó thành chuyện nội bộ của thư mục
- * providers/.
+ * Every gateway (MoMo, VNPay, Stripe, ...) has a completely different SDK and a
+ * completely different flow. This interface is the only thing the rest of the app
+ * ever sees — it turns those differences into a private matter of the
+ * providers/ folder.
  *
- * Nhờ vậy: thêm ZaloPay = thêm một thư mục. Không màn hình nào, không hook
- * nào, không store nào phải sửa.
+ * The payoff: adding ZaloPay = adding one folder. No screen, no hook and no store
+ * has to change.
  */
 export interface PaymentProvider {
   readonly method: PaymentMethod;
 
   /**
-   * Phương thức này có dùng được trên máy hiện tại không?
-   * VD: app MoMo chưa cài thì không thể mở deeplink momo://.
+   * Can this method be used on the current device?
+   * E.g. without the MoMo app installed, a momo:// deeplink cannot be opened.
    */
   isAvailable(): Promise<boolean>;
 
   /**
-   * Khởi động thanh toán.
+   * Starts the payment.
    *
-   * ⚠️ Hàm này KHÔNG trả về "đã thanh toán thành công hay chưa".
-   * Với cổng chuyển hướng, nó chỉ trả về 'redirected' — nghĩa là app đã bị
-   * đẩy ra nền. Kết quả thật phải hỏi server (xem use-payment-return.ts).
-   * Client không bao giờ được tự kết luận là đã trả tiền.
+   * ⚠️ This function does NOT return "whether the payment succeeded".
+   * For a redirecting gateway it only returns 'redirected' — meaning the app has been
+   * pushed to the background. The real result must be asked of the server (see use-payment-return.ts).
+   * The client must never decide by itself that money has been paid.
    */
   pay(intent: PaymentIntent): Promise<PaymentLaunchResult>;
 }

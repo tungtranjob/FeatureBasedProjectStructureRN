@@ -13,14 +13,14 @@ import {SelectorRow} from '../components/SelectorRow';
 import {CHECKOUT_ROUTES} from '../navigation/checkout.routes';
 
 /**
- * MÀN CHECKOUT.
+ * THE CHECKOUT SCREEN.
  *
- * Đếm thử xem có bao nhiêu logic nghiệp vụ ở đây: gần như bằng không.
- * Tính phí, kiểm tra điều kiện, điều phối đặt hàng — tất cả nằm ở
- * model/ và hooks/. Màn hình chỉ đọc kết quả và vẽ.
+ * Count the business logic in here: there is almost none.
+ * Fee calculation, validation, ordering orchestration — all of it lives in
+ * model/ and hooks/. The screen only reads the results and renders.
  *
- * Đó là tiêu chuẩn để tự đánh giá: nếu một màn hình có `if` phức tạp hoặc
- * phép tính về tiền, logic đó đang ở sai chỗ.
+ * That is the yardstick for self-assessment: if a screen has complicated `if`s or
+ * arithmetic about money, that logic is in the wrong place.
  */
 export function CheckoutScreen() {
   const navigation = useNavigation();
@@ -41,8 +41,8 @@ export function CheckoutScreen() {
     );
   }
 
-  // Chỉ hiện vấn đề ĐẦU TIÊN — dẫn người dùng đi từng bước thay vì dội
-  // cả danh sách lỗi lên đầu họ.
+  // Show only the FIRST problem — guide the user step by step rather than dumping
+  // the whole list of errors on them.
   const firstBlocker = flow.blockers[0];
 
   return (

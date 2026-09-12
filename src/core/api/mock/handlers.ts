@@ -28,18 +28,18 @@ import {
 import {MockHttpError, route} from './mock-server';
 
 /**
- * "NGHIỆP VỤ" CỦA BACKEND GIẢ LẬP.
+ * THE FAKE BACKEND'S "BUSINESS LOGIC".
  *
- * Lưu ý quan trọng về phân chia trách nhiệm:
- *   Server là NGUỒN SỰ THẬT về tiền và trạng thái đơn.
- *   Client có tính lại phí (xem features/checkout/model/calc-order-total.ts)
- *   nhưng CHỈ để hiện ngay cho mượt. Khi đặt đơn, con số của server thắng.
+ * An important note on responsibilities:
+ *   The server is the SOURCE OF TRUTH for money and order status.
+ *   The client does recompute fees (see features/checkout/model/calc-order-total.ts)
+ *   but ONLY to show them instantly. When the order is placed, the server's numbers win.
  *
- * Đây không phải chuyện lý thuyết: nếu tin con số client gửi lên, ai đó sửa
- * request là mua được pizza giá 0đ.
+ * This is not theoretical: if you trusted the numbers the client sends, anyone
+ * editing the request could buy a pizza for 0đ.
  */
 
-/* ------------------------------ Tiện ích --------------------------------- */
+/* -------------------------------- Helpers -------------------------------- */
 
 const notFound = (what: string) =>
   new MockHttpError(404, 'NOT_FOUND', `Không tìm thấy ${what}`);
@@ -60,13 +60,13 @@ const findMenuItem = (id: string): MenuItemDto => {
   return found;
 };
 
-/** Phí dịch vụ: 3% tạm tính, trần 10.000đ. */
+/** Service fee: 3% of the subtotal, capped at 10.000đ. */
 const calcServiceFee = (subtotal: number): number =>
   Math.min(Math.round(subtotal * 0.03), 10000);
 
 /**
- * Tính giảm giá từ voucher. Ném lỗi 409 nếu không đủ điều kiện —
- * y hệt backend thật, để client buộc phải xử lý nhánh thất bại.
+ * Computes the voucher discount. Throws a 409 when the conditions are not met —
+ * exactly like a real backend, so the client is forced to handle the failure branch.
  */
 const calcDiscount = (
   voucher: VoucherDto | null,
@@ -120,15 +120,15 @@ const buildFees = (
     deliveryFee,
     serviceFee,
     discount,
-    // Không bao giờ để tổng âm.
+    // Never let the total go negative.
     total: Math.max(0, subtotal + deliveryFee + serviceFee - discount),
   };
 };
 
 /**
- * Đơn hàng TỰ ĐỘNG chạy qua các trạng thái theo thời gian.
- * Mỗi 45 giây nhảy 1 bước, để bạn xem được màn theo dõi đơn "sống"
- * mà không cần dựng bếp và tài xế thật.
+ * Orders move through their statuses AUTOMATICALLY over time.
+ * One step every 45 seconds, so you can watch the tracking screen come "alive"
+ * without a real kitchen and a real driver.
  */
 const LIFECYCLE: OrderStatusDto[] = [
   'CONFIRMED',
@@ -170,7 +170,7 @@ const STATUS_NOTE: Record<OrderStatusDto, string> = {
   CANCELLED: 'Đơn hàng đã bị huỷ',
 };
 
-/* ------------------------------ Xác thực --------------------------------- */
+/* --------------------------------- Auth ---------------------------------- */
 
 route('POST', '/auth/login', ({body}): LoginResponseDto => {
   const {phone, otp} = (body ?? {}) as {phone?: string; otp?: string};
@@ -178,7 +178,7 @@ route('POST', '/auth/login', ({body}): LoginResponseDto => {
   if (!phone || phone.length < 9) {
     throw new MockHttpError(422, 'INVALID_PHONE', 'Số điện thoại không hợp lệ');
   }
-  // OTP demo: 6 số bất kỳ đều được, trừ 000000 để test nhánh sai OTP.
+  // Demo OTP: any 6 digits work, except 000000 which exercises the wrong-OTP branch.
   if (otp === '000000') {
     throw new MockHttpError(401, 'INVALID_OTP', 'Mã OTP không đúng');
   }
@@ -192,7 +192,7 @@ route('POST', '/auth/login', ({body}): LoginResponseDto => {
 
 route('GET', '/me/addresses', () => mockAddresses);
 
-/* ------------------------------- Nhà hàng -------------------------------- */
+/* ------------------------------ Restaurants ------------------------------ */
 
 route('GET', '/restaurants', ({query}): Paginated<RestaurantDto> => {
   const search = (query.search ?? '').trim().toLowerCase();
@@ -230,11 +230,11 @@ route('GET', '/restaurants/:id', ({params}) =>
 
 route('GET', '/restaurants/:id/menu', ({params}): MenuDto => {
   const restaurantId = params.id as string;
-  findRestaurant(restaurantId); // ném 404 nếu id sai
+  findRestaurant(restaurantId); // throws 404 if the id is wrong
 
   const items = mockMenuItems.filter(i => i.restaurantId === restaurantId);
 
-  // Gom món theo danh mục, giữ nguyên thứ tự xuất hiện đầu tiên.
+  // Group items by category, preserving the order they first appear in.
   const sections: MenuSectionDto[] = [];
   for (const item of items) {
     let section = sections.find(s => s.categoryId === item.categoryId);
@@ -254,18 +254,18 @@ route('GET', '/restaurants/:id/menu', ({params}): MenuDto => {
 
 route('GET', '/menu-items/:id', ({params}) => findMenuItem(params.id as string));
 
-/* ------------------------------ Khuyến mãi ------------------------------- */
+/* ------------------------------ Promotions ------------------------------- */
 
 route('GET', '/vouchers', ({query}): VoucherDto[] => {
   const restaurantId = query.restaurantId;
-  // Trả về CẢ voucher không dùng được (hết hạn, chưa đủ đơn tối thiểu).
-  // Client tự quyết định hiển thị mờ hay ẩn — server không đoán thay UI.
+  // Return vouchers that CANNOT be used too (expired, minimum order not reached).
+  // The client decides whether to dim or hide them — the server does not guess for the UI.
   return mockVouchers.filter(
     v => !v.restaurantId || !restaurantId || v.restaurantId === restaurantId,
   );
 });
 
-/* ------------------------------- Báo giá --------------------------------- */
+/* --------------------------------- Quote --------------------------------- */
 
 route('POST', '/quote', ({body}): FeeBreakdownDto => {
   const request = body as QuoteRequestDto;
@@ -276,12 +276,12 @@ route('POST', '/quote', ({body}): FeeBreakdownDto => {
   return buildFees(request.subtotal, restaurant, voucher);
 });
 
-/* ------------------------------- Đơn hàng -------------------------------- */
+/* -------------------------------- Orders --------------------------------- */
 
 route('POST', '/orders', ({body}): PlaceOrderResponseDto => {
   const request = body as PlaceOrderRequestDto;
 
-  /* ---- 1. Chống tạo đơn trùng (idempotency) ---- */
+  /* ---- 1. Reject duplicate orders (idempotency) ---- */
   const existingOrderId = mockDb.idempotency.get(request.idempotencyKey);
   if (existingOrderId) {
     const existing = mockDb.orders.find(o => o.id === existingOrderId);
@@ -292,7 +292,7 @@ route('POST', '/orders', ({body}): PlaceOrderResponseDto => {
     }
   }
 
-  /* ---- 2. Kiểm tra đầu vào ---- */
+  /* ---- 2. Validate the input ---- */
   const restaurant = findRestaurant(request.restaurantId);
   if (restaurant.isPaused) {
     throw new MockHttpError(
@@ -310,7 +310,7 @@ route('POST', '/orders', ({body}): PlaceOrderResponseDto => {
     throw notFound('địa chỉ giao hàng');
   }
 
-  /* ---- 3. Server tự tính tiền, KHÔNG tin số từ client ---- */
+  /* ---- 3. The server computes the money itself, it does NOT trust the client ---- */
   const orderItems: OrderItemDto[] = request.items.map(line => {
     const menuItem = findMenuItem(line.menuItemId);
 
@@ -356,7 +356,7 @@ route('POST', '/orders', ({body}): PlaceOrderResponseDto => {
     : null;
   const fees = buildFees(subtotal, restaurant, voucher);
 
-  /* ---- 4. Tạo đơn ---- */
+  /* ---- 4. Create the order ---- */
   mockDb.orderSeq += 1;
   const isCod = request.paymentMethod === 'COD';
   const now = new Date().toISOString();
@@ -371,7 +371,7 @@ route('POST', '/orders', ({body}): PlaceOrderResponseDto => {
     },
     items: orderItems,
     fees,
-    // COD thì xác nhận ngay; các hình thức khác phải chờ thanh toán xong.
+    // COD is confirmed straight away; everything else waits for payment to complete.
     status: isCod ? 'CONFIRMED' : 'PENDING_PAYMENT',
     paymentMethod: request.paymentMethod,
     paymentStatus: 'PENDING',
@@ -390,7 +390,7 @@ route('POST', '/orders', ({body}): PlaceOrderResponseDto => {
   mockDb.orders.unshift(order);
   mockDb.idempotency.set(request.idempotencyKey, order.id);
 
-  /* ---- 5. Tạo payment intent (trừ COD) ---- */
+  /* ---- 5. Create the payment intent (except for COD) ---- */
   let paymentIntent: PaymentIntentDto | null = null;
   if (!isCod) {
     paymentIntent = {
@@ -399,8 +399,8 @@ route('POST', '/orders', ({body}): PlaceOrderResponseDto => {
       method: request.paymentMethod,
       amount: fees.total,
       status: 'PENDING',
-      // Deeplink giả lập của cổng thanh toán. Trong app thật, đây là URL
-      // do MoMo/VNPay trả về sau khi backend tạo giao dịch.
+      // A simulated gateway deeplink. In a real app this is the URL
+      // MoMo/VNPay returns after the backend creates the transaction.
       redirectUrl: buildMockRedirectUrl(request.paymentMethod, order.id),
       expiresAt: new Date(Date.now() + 15 * 60_000).toISOString(),
     };
@@ -430,7 +430,7 @@ route('POST', '/orders/:id/cancel', ({params}): OrderDto => {
   if (!order) {
     throw notFound('đơn hàng');
   }
-  // Quy tắc nghiệp vụ: chỉ huỷ được trước khi bếp bắt đầu nấu.
+  // Business rule: cancelling is only allowed before the kitchen starts cooking.
   if (order.status !== 'CONFIRMED' && order.status !== 'PENDING_PAYMENT') {
     throw new MockHttpError(
       409,
@@ -450,7 +450,7 @@ route('POST', '/orders/:id/cancel', ({params}): OrderDto => {
   return order;
 });
 
-/* ------------------------------ Thanh toán ------------------------------- */
+/* -------------------------------- Payment -------------------------------- */
 
 route('GET', '/payments/:id', ({params}): PaymentIntentDto => {
   const intent = mockDb.paymentIntents.find(p => p.id === params.id);
@@ -461,11 +461,11 @@ route('GET', '/payments/:id', ({params}): PaymentIntentDto => {
 });
 
 /**
- * ⚠️ ROUTE NÀY CHỈ TỒN TẠI TRONG MOCK.
+ * ⚠️ THIS ROUTE ONLY EXISTS IN THE MOCK.
  *
- * Nó thay cho việc user thật sự mở app MoMo và bấm xác nhận. Ở production,
- * cổng thanh toán gọi webhook tới BACKEND, và app chỉ hỏi lại trạng thái.
- * App KHÔNG BAO GIỜ được tự đánh dấu "đã thanh toán" cho chính nó.
+ * It stands in for the user actually opening MoMo and confirming. In production the
+ * gateway calls a webhook on the BACKEND, and the app only re-queries the status.
+ * The app must NEVER mark itself as "paid".
  */
 route('POST', '/payments/:id/simulate', ({params, body}): PaymentIntentDto => {
   const intent = mockDb.paymentIntents.find(p => p.id === params.id);
@@ -488,7 +488,7 @@ route('POST', '/payments/:id/simulate', ({params, body}): PaymentIntentDto => {
   if (order) {
     order.paymentStatus = 'PAID';
     order.status = 'CONFIRMED';
-    // Reset mốc thời gian để vòng đời đơn bắt đầu tính từ lúc trả tiền xong.
+    // Reset the timestamp so the order lifecycle starts counting from when payment finished.
     order.placedAt = new Date().toISOString();
     order.statusHistory.push({
       status: 'CONFIRMED',

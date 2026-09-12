@@ -1,34 +1,34 @@
 /**
- * Cấu hình runtime — một nơi duy nhất.
+ * Runtime configuration — a single place.
  *
- * Trong dự án thật, các giá trị này đến từ react-native-config (.env) hoặc
- * từ build variant. Ở đây hardcode cho gọn, nhưng ĐIỂM QUAN TRỌNG vẫn giữ
- * nguyên: không component nào đọc thẳng process.env / Config, tất cả đi qua
- * object typed này. Nhờ vậy đổi nguồn cấu hình chỉ sửa 1 file.
+ * In a real project these values come from react-native-config (.env) or from
+ * the build variant. They are hardcoded here for brevity, but THE IMPORTANT
+ * PART still holds: no component reads process.env / Config directly, everything
+ * goes through this typed object. Changing the config source means editing 1 file.
  */
 export const env = {
   /**
-   * Bật/tắt mock API.
+   * Turns the mock API on/off.
    *
-   * Đây là công tắc cho thấy sức mạnh của việc tách tầng api/:
-   * đổi `false` là toàn bộ app quay sang backend thật, KHÔNG file feature nào
-   * phải sửa, vì feature chỉ biết `http.get(...)` chứ không biết dữ liệu
-   * đến từ đâu.
+   * This switch shows why the api/ layer is separated:
+   * flip it to `false` and the whole app talks to the real backend with NO feature
+   * file changed, because a feature only knows `http.get(...)` and not where the
+   * data comes from.
    */
   useMockApi: true,
 
   apiBaseUrl: 'https://api.foodgo.vn',
 
-  /** Scheme dùng cho deep link quay về sau khi thanh toán. */
+  /** Scheme used by the deep link that returns from the payment gateway. */
   deeplinkScheme: 'foodgo',
 
-  /** Mock độ trễ mạng để UI loading/skeleton được test thật sự. */
+  /** Fake network latency so loading/skeleton UI can actually be exercised. */
   mock: {
     minLatencyMs: 250,
     maxLatencyMs: 700,
     /**
-     * Tỉ lệ request mock thất bại (0 = không bao giờ lỗi).
-     * Chỉnh lên 0.2 để xem ErrorView và nút "Thử lại" hoạt động ra sao.
+     * Share of mock requests that fail (0 = never fail).
+     * Raise it to 0.2 to see how ErrorView and the "Thử lại" button behave.
      */
     failureRate: 0,
   },

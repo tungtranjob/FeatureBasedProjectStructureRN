@@ -4,13 +4,13 @@ import {useSelectedAddressStore} from '../store/selected-address.store';
 import type {DeliveryAddress} from '../model/types';
 
 /**
- * ⭐ GHÉP CLIENT STATE VỚI SERVER STATE — mẫu hình dùng đi dùng lại.
+ * ⭐ JOINING CLIENT STATE WITH SERVER STATE — a pattern used again and again.
  *
- * Zustand giữ "id đang chọn"; TanStack Query giữ danh sách địa chỉ thật.
- * Hook này ghép hai thứ lại và xử lý mọi trường hợp biên:
- *   - Chưa chọn gì -> lấy địa chỉ mặc định.
- *   - Id đã chọn không còn tồn tại (user xoá trên web) -> quay về mặc định
- *     thay vì trả về undefined làm hỏng màn checkout.
+ * Zustand holds "which id is selected"; TanStack Query holds the real address list.
+ * This hook joins the two and handles every edge case:
+ *   - Nothing selected yet -> use the default address.
+ *   - The selected id no longer exists (deleted on the web) -> fall back to the default
+ *     instead of returning undefined and breaking checkout.
  */
 export function useDeliveryAddress() {
   const {data: addresses, isPending, error, refetch} = useAddresses();
@@ -24,7 +24,7 @@ export function useDeliveryAddress() {
     const chosen = selectedId
       ? addresses.find(item => item.id === selectedId)
       : undefined;
-    // Fallback: địa chỉ mặc định, rồi mới tới địa chỉ đầu tiên.
+    // Fallback: the default address first, then the first one in the list.
     return chosen ?? addresses.find(item => item.isDefault) ?? addresses[0] ?? null;
   }, [addresses, selectedId]);
 

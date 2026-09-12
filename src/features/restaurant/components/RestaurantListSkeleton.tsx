@@ -4,9 +4,9 @@ import {Skeleton} from '@shared/ui';
 import {radius, spacing} from '@shared/theme';
 
 /**
- * Skeleton phải MÔ PHỎNG ĐÚNG bố cục thật (ảnh 150px, 3 dòng chữ).
- * Nếu vẽ đại, nội dung thật xuất hiện sẽ làm layout nhảy — cảm giác còn
- * tệ hơn là hiện spinner.
+ * A skeleton must MIRROR the real layout (150px image, 3 lines of text).
+ * Draw it roughly and the real content will make the layout jump — which feels
+ * worse than showing a spinner.
  */
 export function RestaurantListSkeleton({count = 4}: {count?: number}) {
   return (

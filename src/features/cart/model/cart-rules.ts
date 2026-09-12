@@ -3,11 +3,11 @@ import {addMoney, money, multiplyMoney, type Money} from '@shared/types/money';
 import type {AddToCartInput, Cart, CartLine} from './types';
 
 /**
- * TOÀN BỘ QUY TẮC NGHIỆP VỤ CỦA GIỎ HÀNG — hàm thuần, không React.
+ * ALL OF THE CART'S BUSINESS RULES — pure functions, no React.
  *
- * Store ở tầng trên chỉ làm mỗi việc: gọi các hàm này rồi lưu kết quả.
- * Nhờ vậy ta test được "thêm món trùng thì gộp dòng" mà không cần dựng
- * zustand, không cần render, không cần mock storage.
+ * The store above does exactly one thing: call these functions and save the result.
+ * That lets us test "adding a duplicate item merges the lines" without standing up
+ * zustand, without rendering, and without mocking storage.
  */
 
 export const EMPTY_CART: Cart = {
@@ -17,10 +17,10 @@ export const EMPTY_CART: Cart = {
 };
 
 /**
- * Hai dòng được coi là TRÙNG khi cùng món VÀ cùng tuỳ chọn VÀ cùng ghi chú.
+ * Two lines count as DUPLICATES when it is the same item AND the same options AND the same note.
  *
- * Sắp xếp optionIds trước khi so sánh: ['A','B'] và ['B','A'] là cùng một
- * lựa chọn. Bỏ qua chi tiết này là sinh ra hai dòng y hệt nhau trong giỏ.
+ * Sort optionIds before comparing: ['A','B'] and ['B','A'] are the same selection.
+ * Miss that detail and you end up with two identical lines in the cart.
  */
 export const isSameLine = (
   line: Pick<CartLine, 'menuItemId' | 'optionIds' | 'note'>,
@@ -30,16 +30,16 @@ export const isSameLine = (
   line.note.trim() === input.note.trim() &&
   [...line.optionIds].sort().join('|') === [...input.optionIds].sort().join('|');
 
-/** Thêm món có nhận diện được nhà hàng khác không. */
+/** Whether adding an item means switching to a different restaurant. */
 export const isDifferentRestaurant = (cart: Cart, restaurantId: string): boolean =>
   cart.restaurantId !== null &&
   cart.lines.length > 0 &&
   cart.restaurantId !== restaurantId;
 
 export const addLine = (cart: Cart, input: AddToCartInput): Cart => {
-  // Món của quán khác -> thay giỏ mới. Người gọi có trách nhiệm HỎI người
-  // dùng trước (xem use-add-to-cart.ts). Ở tầng model ta chỉ định nghĩa
-  // kết quả, không hiện dialog — model không biết gì về UI.
+  // An item from another restaurant -> replace the cart. The caller is responsible for
+  // ASKING the user first (see use-add-to-cart.ts). At the model layer we only define
+  // the outcome, we do not show a dialog — the model knows nothing about the UI.
   const base = isDifferentRestaurant(cart, input.restaurantId)
     ? {...EMPTY_CART}
     : cart;
@@ -80,7 +80,7 @@ export const updateLineQuantity = (
   lineId: string,
   quantity: number,
 ): Cart => {
-  // Giảm về 0 = xoá dòng. Không giữ dòng số lượng 0 trong giỏ.
+  // Dropping to 0 = remove the line. We never keep a zero-quantity line in the cart.
   if (quantity <= 0) {
     return removeLine(cart, lineId);
   }
@@ -94,8 +94,8 @@ export const updateLineQuantity = (
 
 export const removeLine = (cart: Cart, lineId: string): Cart => {
   const lines = cart.lines.filter(line => line.id !== lineId);
-  // Xoá dòng cuối cùng -> giỏ rỗng hoàn toàn, quên luôn nhà hàng.
-  // Nếu không, user sẽ bị hỏi "đổi nhà hàng?" cho một cái giỏ đang rỗng.
+  // Removing the last line -> the cart is completely empty and forgets the restaurant.
+  // Otherwise the user gets asked "switch restaurant?" for a cart that is already empty.
   return lines.length === 0 ? EMPTY_CART : {...cart, lines};
 };
 

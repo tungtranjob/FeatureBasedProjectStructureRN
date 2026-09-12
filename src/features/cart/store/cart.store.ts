@@ -7,17 +7,17 @@ import * as rules from '../model/cart-rules';
 import type {AddToCartInput, Cart} from '../model/types';
 
 /**
- * CART STORE — ví dụ mẫu về CLIENT STATE.
+ * THE CART STORE — the textbook example of CLIENT STATE.
  *
- * Vì sao giỏ hàng KHÔNG dùng TanStack Query:
- *   - Không có endpoint nào để "fetch giỏ hàng về" — app tự tạo ra nó.
- *   - Phải dùng được khi mất mạng (đi thang máy vẫn chọn món được).
- *   - Ghi vào nó rất nhiều lần và phải phản hồi tức thì, không có độ trễ.
+ * Why the cart does NOT use TanStack Query:
+ *   - There is no endpoint to "fetch the cart" from — the app creates it.
+ *   - It has to work offline (you can still pick items in a lift).
+ *   - It is written to constantly and must respond instantly, with no latency.
  *
- * Nhìn kỹ sẽ thấy store này gần như KHÔNG chứa logic: mỗi action chỉ gọi
- * một hàm thuần trong model/ rồi lưu kết quả. Đó là chủ ý. Logic ở trong
- * hàm thuần thì test dễ; logic nhét trong store thì phải dựng store mới
- * test được.
+ * Look closely and this store contains almost NO logic: each action calls a pure
+ * function in model/ and saves the result. That is intentional. Logic in a pure
+ * function is easy to test; logic stuffed into the store requires standing the store
+ * up just to test it.
  */
 interface CartState {
   cart: Cart;
@@ -36,9 +36,9 @@ export const useCartStore = create<CartState>()(
       add: input => {
         const current = get().cart;
 
-        // Phát event khi người dùng chuyển sang mua ở quán khác.
-        // cart không cần biết ai quan tâm (analytics? gợi ý món?) —
-        // nó chỉ thông báo sự thật đã xảy ra.
+        // Emit an event when the user switches to shopping at another restaurant.
+        // cart does not need to know who cares (analytics? recommendations?) —
+        // it only announces a fact that happened.
         if (rules.isDifferentRestaurant(current, input.restaurantId)) {
           appEventBus.emit('cart:restaurant-switched', {
             fromRestaurantId: current.restaurantId as string,
@@ -63,17 +63,17 @@ export const useCartStore = create<CartState>()(
       name: 'foodgo.cart',
       storage: createJSONStorage(() => mmkvStorage),
       /**
-       * version + migrate: BẮT BUỘC với store có persist.
+       * version + migrate: MANDATORY for a persisted store.
        *
-       * Người dùng cập nhật app nhưng dữ liệu cũ vẫn nằm trong máy họ. Nếu
-       * bạn đổi hình dạng CartLine mà không tăng version, app sẽ đọc phải
-       * dữ liệu cũ và crash ngay lần mở đầu tiên sau khi update — một lỗi
-       * cực kỳ khó tái hiện trên máy dev vì máy dev luôn cài mới.
+       * The user updates the app but the old data is still on their device. If you
+       * change the shape of CartLine without bumping the version, the app reads the
+       * old data and crashes on the first launch after the update — a bug that is
+       * extremely hard to reproduce on a dev machine, which always installs fresh.
        */
       version: 1,
       migrate: (persisted, fromVersion) => {
         if (fromVersion === 0) {
-          // Schema v0 quá khác -> bỏ giỏ cũ còn hơn crash.
+          // The v0 schema is too different -> dropping the old cart beats crashing.
           return {cart: rules.EMPTY_CART};
         }
         return persisted as {cart: Cart};
@@ -85,26 +85,26 @@ export const useCartStore = create<CartState>()(
 /* ------------------------------ SELECTORS -------------------------------- */
 
 /**
- * ⭐ SELECTOR NGUYÊN THUỶ — chi tiết nhỏ nhưng ảnh hưởng lớn tới hiệu năng.
+ * ⭐ PRIMITIVE SELECTORS — a small detail with a large effect on performance.
  *
- * `useCartStore(selectItemCount)` trả về một con số. Zustand so sánh bằng
- * Object.is, nên component CHỈ re-render khi con số đó thật sự đổi.
+ * `useCartStore(selectItemCount)` returns a number. Zustand compares with Object.is,
+ * so the component ONLY re-renders when that number actually changes.
  *
- * Nếu viết `useCartStore(s => ({count: ..., total: ...}))` thì mỗi lần store
- * đổi bất cứ thứ gì, selector tạo object MỚI -> Object.is false -> re-render
- * vô ích. Với badge giỏ hàng hiện ở mọi màn hình, sai lầm này khiến cả app
- * render lại mỗi lần user gõ ghi chú.
+ * Write `useCartStore(s => ({count: ..., total: ...}))` instead and every time anything
+ * in the store changes, the selector builds a NEW object -> Object.is is false ->
+ * a pointless re-render. With the cart badge on every screen, that mistake re-renders
+ * the whole app each time the user types a note.
  */
 export const selectItemCount = (state: CartState): number =>
   rules.countItems(state.cart);
 
 /**
- * Trả về `Money` chứ không phải `number`.
+ * Returns `Money`, not `number`.
  *
- * Nếu để `number`, branded type bị "tuột" ngay tại selector và mọi hàm phía
- * sau (calcDiscount, calcOrderTotal, validateCheckout) sẽ nhận number trần —
- * mất sạch lớp bảo vệ mà Money dựng lên. Branded type chỉ có tác dụng khi
- * được giữ nguyên suốt đường đi.
+ * With `number`, the branded type is "dropped" right at the selector and every function
+ * downstream (calcDiscount, calcOrderTotal, validateCheckout) receives a bare number —
+ * losing all the protection Money provides. A branded type only works when it is kept
+ * intact the whole way through.
  */
 export const selectSubtotal = (state: CartState): Money =>
   rules.calcSubtotal(state.cart);

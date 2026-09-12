@@ -2,11 +2,11 @@ import type {Money} from '@shared/types/money';
 import {formatCurrency} from '@shared/lib/format';
 
 /**
- * Những lý do khiến KHÔNG đặt được đơn.
+ * The reasons an order CANNOT be placed.
  *
- * Dùng union có phân biệt (discriminated union) thay vì mảng string, để UI
- * xử lý được từng loại khác nhau: thiếu địa chỉ thì mở màn chọn địa chỉ,
- * còn chưa đủ đơn tối thiểu thì chỉ hiện thông báo.
+ * A discriminated union rather than an array of strings, so the UI can handle each
+ * kind differently: a missing address opens the address picker, while a minimum-order
+ * shortfall only shows a message.
  */
 export type CheckoutBlocker =
   | {kind: 'empty-cart'; message: string}
@@ -23,11 +23,11 @@ export interface CheckoutValidationInput {
 }
 
 /**
- * Trả về danh sách vấn đề, THEO THỨ TỰ ƯU TIÊN xử lý.
+ * Returns the list of problems, IN THE ORDER they should be dealt with.
  *
- * Thứ tự quan trọng: UI chỉ hiện vấn đề ĐẦU TIÊN trên nút đặt hàng. Đổ cả
- * 4 lỗi lên màn hình cùng lúc chỉ làm người dùng hoảng — hãy dẫn họ đi
- * từng bước một.
+ * The order matters: the UI only shows the FIRST problem on the order button. Dumping
+ * all 4 errors on screen at once just alarms the user — guide them through one step
+ * at a time.
  */
 export const validateCheckout = (
   input: CheckoutValidationInput,
@@ -36,7 +36,7 @@ export const validateCheckout = (
 
   if (input.itemCount === 0) {
     blockers.push({kind: 'empty-cart', message: 'Giỏ hàng đang trống'});
-    // Giỏ rỗng thì mọi kiểm tra khác đều vô nghĩa.
+    // With an empty cart, every other check is meaningless.
     return blockers;
   }
 

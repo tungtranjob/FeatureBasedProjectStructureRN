@@ -5,8 +5,8 @@ import {Badge, Divider, ErrorView, Screen, Skeleton, Txt} from '@shared/ui';
 import {colors, spacing} from '@shared/theme';
 import {formatCurrency, formatDistance, formatEta, formatRating} from '@shared/lib/format';
 import {CartFab} from '@features/cart';
-// restaurant KHÔNG biết menu được cài đặt ra sao — chỉ biết có một component
-// nhận restaurantId và tự lo phần còn lại.
+// restaurant does NOT know how menu is implemented — only that there is a component
+// that takes a restaurantId and handles the rest itself.
 import {MenuSectionList} from '@features/menu';
 import {useRestaurant} from '../api/restaurant.queries';
 import {AVAILABILITY_LABEL, getAvailability} from '../model/availability';
@@ -15,9 +15,9 @@ import type {RestaurantStackParamList} from '../navigation/restaurant.routes';
 type DetailRoute = RouteProp<RestaurantStackParamList, 'RestaurantDetail'>;
 
 /**
- * Màn hình này là ví dụ điển hình của COMPOSITION giữa các feature:
- * phần đầu do `restaurant` vẽ, phần menu do `menu` vẽ, nút giỏ hàng do
- * `cart` vẽ. Mỗi bên tự lo dữ liệu của mình, không ai truyền props xuyên tầng.
+ * This screen is a textbook example of COMPOSITION between features:
+ * the header is drawn by `restaurant`, the menu by `menu`, and the cart button by
+ * `cart`. Each handles its own data; nobody drills props through layers.
  */
 export function RestaurantDetailScreen() {
   const {params} = useRoute<DetailRoute>();

@@ -19,25 +19,25 @@ import type {RootStackParamList} from './types';
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 /**
- * ⭐ COMPOSITION ROOT CỦA ĐIỀU HƯỚNG.
+ * ⭐ THE COMPOSITION ROOT OF NAVIGATION.
  *
- * Đây là file DUY NHẤT trong app import từ mọi feature. Nhìn danh sách
- * import ở trên là thấy ngay app có những feature nào — một dạng tài liệu
- * kiến trúc tự cập nhật.
+ * This is the ONLY file in the app that imports from every feature. The import list
+ * above tells you at a glance which features the app has — a form of architecture
+ * documentation that keeps itself up to date.
  *
- * Cấu trúc: một stack phẳng thay vì lồng nhiều navigator. Với app cỡ này
- * nó đơn giản hơn hẳn, và việc điều hướng chéo giữa các feature (checkout
- * -> payment -> order) không phải đi xuyên qua nhiều lớp navigator.
+ * Structure: one flat stack instead of nested navigators. At this app's size that is
+ * considerably simpler, and navigating across features (checkout -> payment -> order)
+ * does not have to cross several navigator layers.
  */
 export function RootNavigator() {
   const {isAuthenticated, hasHydrated} = useAuth();
 
   /**
-   * Chờ đọc xong session từ đĩa trước khi quyết định hiện màn nào.
+   * Wait until the session has been read from disk before deciding which screen to show.
    *
-   * Bỏ qua bước này là người dùng thấy màn Login nháy một cái rồi mới vào
-   * app — lỗi kinh điển của mọi app có persist auth, và trông rất thiếu
-   * chuyên nghiệp.
+   * Skip this and the user sees the Login screen flash before landing in the app —
+   * the classic bug in every app with persisted auth, and it looks distinctly
+   * unprofessional.
    */
   if (!hasHydrated) {
     return (
@@ -76,8 +76,8 @@ export function RootNavigator() {
             <Stack.Screen
               name="ItemDetail"
               component={ItemDetailScreen}
-              // Trình bày dạng modal: người dùng đang "tạm dừng" luồng duyệt
-              // menu để tuỳ chỉnh một món, chứ không đi sâu thêm một cấp.
+              // Presented as a modal: the user is "pausing" the menu browsing flow
+              // to customise an item, not going one level deeper.
               options={{presentation: 'modal', title: 'Tuỳ chọn món'}}
             />
             <Stack.Screen
@@ -105,8 +105,8 @@ export function RootNavigator() {
               component={PaymentProcessingScreen}
               options={{
                 title: 'Thanh toán',
-                // Ẩn nút back trên header. Việc chặn back cứng/vuốt do
-                // useBackHandlerGuard bên trong màn hình đảm nhiệm.
+                // Hide the header back button. Blocking the hardware back button and
+                // the back swipe is handled by useBackHandlerGuard inside the screen.
                 headerBackVisible: false,
                 gestureEnabled: false,
               }}

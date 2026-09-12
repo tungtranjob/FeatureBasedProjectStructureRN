@@ -7,14 +7,14 @@ import type {MenuItem} from '../model/types';
 
 interface MenuItemRowProps {
   item: MenuItem;
-  /** Quán đóng cửa thì cả hàng bị vô hiệu hoá, dù món vẫn còn. */
+  /** When the restaurant is closed the whole row is disabled, even if the item is in stock. */
   canOrder: boolean;
   onPress: () => void;
 }
 
 export function MenuItemRow({item, canOrder, onPress}: MenuItemRowProps) {
-  // Hai lý do khác nhau khiến không đặt được -> hai thông điệp khác nhau.
-  // Gộp thành một cờ "disabled" chung là cách nhanh nhất làm user bối rối.
+  // Two different reasons for being unorderable -> two different messages.
+  // Collapsing them into one "disabled" flag is the fastest way to confuse the user.
   const disabled = !canOrder || !item.isAvailable;
 
   return (

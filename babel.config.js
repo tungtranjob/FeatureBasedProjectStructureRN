@@ -6,7 +6,7 @@ module.exports = {
       {
         root: ['./src'],
         extensions: ['.ts', '.tsx', '.js', '.jsx', '.json'],
-        // Giữ đồng bộ 1-1 với "paths" trong tsconfig.json
+        // Keep in 1-1 sync with "paths" in tsconfig.json
         alias: {
           '@app': './src/app',
           '@core': './src/core',

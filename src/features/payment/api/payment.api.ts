@@ -22,11 +22,11 @@ export const paymentApi = {
   },
 
   /**
-   * ⚠️ CHỈ DÙNG TRONG DEMO.
+   * ⚠️ DEMO ONLY.
    *
-   * Thay cho việc người dùng thật sự xác nhận trong app MoMo. Ở production,
-   * cổng thanh toán gọi webhook tới backend; app không có endpoint nào để
-   * tự nói "tôi đã trả tiền rồi".
+   * It stands in for the user actually confirming in the MoMo app. In production the
+   * gateway calls a webhook on the backend; the app has no endpoint for telling it
+   * "I have paid".
    */
   async simulateGateway(
     intentId: string,

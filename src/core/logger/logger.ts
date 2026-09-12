@@ -1,11 +1,11 @@
 /* eslint-disable no-console */
 
 /**
- * Logger tập trung.
+ * Central logger.
  *
- * Lý do không gọi thẳng console.log khắp nơi: khi cần gắn Sentry/Datadog,
- * bạn chỉ sửa file này. Ngoài ra ở production ta muốn tắt log debug nhưng
- * vẫn giữ log lỗi — điều đó không làm được nếu console.log rải rác 200 chỗ.
+ * Why not call console.log everywhere: when Sentry/Datadog needs wiring in,
+ * you only edit this file. Also, in production we want debug logs off but
+ * error logs kept — impossible if console.log is scattered across 200 places.
  */
 type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 

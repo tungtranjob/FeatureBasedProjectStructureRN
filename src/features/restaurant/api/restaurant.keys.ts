@@ -1,14 +1,14 @@
 /**
  * QUERY KEY FACTORY.
  *
- * Query key là "địa chỉ" của dữ liệu trong cache TanStack Query. Gõ tay
- * mảng key ở từng chỗ là con đường ngắn nhất tới bug "sao invalidate rồi mà
- * màn hình không cập nhật" — vì bạn invalidate ['restaurant'] trong khi
- * query đăng ký dưới key ['restaurants'].
+ * A query key is the "address" of data in the TanStack Query cache. Typing the key
+ * array by hand in each place is the shortest route to the "I invalidated but the
+ * screen did not update" bug — because you invalidated ['restaurant'] while the
+ * query registered itself under ['restaurants'].
  *
- * Cấu trúc phân cấp cho phép invalidate theo tầng:
- *   invalidateQueries({queryKey: restaurantKeys.all})   -> xoá mọi thứ
- *   invalidateQueries({queryKey: restaurantKeys.lists()}) -> chỉ các danh sách
+ * The hierarchy lets you invalidate at any level:
+ *   invalidateQueries({queryKey: restaurantKeys.all})   -> everything
+ *   invalidateQueries({queryKey: restaurantKeys.lists()}) -> just the lists
  */
 export const restaurantKeys = {
   all: ['restaurants'] as const,

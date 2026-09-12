@@ -2,17 +2,17 @@ import {useEffect, useRef} from 'react';
 import {AppState, type AppStateStatus} from 'react-native';
 
 /**
- * Gọi callback khi app chuyển trạng thái (background <-> foreground).
+ * Calls a callback when the app changes state (background <-> foreground).
  *
- * Đây là hook TỐI QUAN TRỌNG với luồng thanh toán: khi user rời app sang
- * MoMo rồi quay lại, đôi khi KHÔNG có deep link nào được bắn (user tự bấm
- * nút back). Lúc đó sự kiện 'active' là tín hiệu duy nhất ta có.
+ * This hook is CRITICAL for the payment flow: when the user leaves for MoMo and
+ * comes back, sometimes NO deep link fires at all (they pressed the back button
+ * themselves). In that case the 'active' event is the only signal we get.
  */
 export function useAppState(
   onChange: (next: AppStateStatus, previous: AppStateStatus) => void,
 ): void {
   const previous = useRef(AppState.currentState);
-  // Giữ callback trong ref để không phải gỡ/gắn lại listener mỗi lần render.
+  // Keep the callback in a ref so we do not detach/reattach the listener on every render.
   const callback = useRef(onChange);
   callback.current = onChange;
 

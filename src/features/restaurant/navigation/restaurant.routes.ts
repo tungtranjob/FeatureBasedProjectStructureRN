@@ -4,11 +4,11 @@ export const RESTAURANT_ROUTES = {
 } as const;
 
 /**
- * ParamList của RIÊNG feature này.
+ * The ParamList belonging to THIS feature alone.
  *
- * app/navigation/types.ts sẽ hợp nhất ParamList của tất cả feature lại.
- * Nhờ cách này, thêm một màn hình mới KHÔNG cần sửa file type tập trung —
- * bạn khai báo ngay tại feature sở hữu nó.
+ * app/navigation/types.ts merges every feature's ParamList together.
+ * Because of that, adding a new screen requires NO edit to a central type file —
+ * you declare it right in the feature that owns it.
  */
 export type RestaurantStackParamList = {
   [RESTAURANT_ROUTES.Home]: undefined;

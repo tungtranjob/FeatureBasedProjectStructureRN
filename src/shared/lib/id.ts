@@ -1,9 +1,9 @@
 /**
- * Sinh id phía client (cho dòng giỏ hàng, idempotency key...).
+ * Client-side id generation (cart line ids, idempotency keys, ...).
  *
- * Không dùng uuid package để khỏi thêm dependency — với mục đích này thì
- * random + timestamp là đủ. Nếu cần chuẩn UUID v4 thật (VD: gửi lên server
- * làm khoá chính) thì hãy thay bằng `react-native-uuid`.
+ * We avoid the uuid package to skip a dependency — for this purpose random +
+ * timestamp is enough. If you need a real UUID v4 (e.g. sending it to the server
+ * as a primary key), swap in `react-native-uuid`.
  */
 export const generateId = (prefix = 'id'): string =>
   `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;

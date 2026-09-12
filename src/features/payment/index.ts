@@ -1,4 +1,4 @@
-/** PUBLIC API của feature payment. */
+/** The payment feature's PUBLIC API. */
 export {PaymentProcessingScreen} from './screens/PaymentProcessingScreen';
 export {PaymentMethodList} from './components/PaymentMethodList';
 export {PAYMENT_ROUTES, paymentLinking} from './navigation/payment.routes';
@@ -21,6 +21,6 @@ export type {
 
 import {usePaymentStore} from './store/payment.store';
 
-/** Có giao dịch nào đang dang dở không (dùng ở app/bootstrap). */
+/** Whether any transaction is still in flight (used by app/bootstrap). */
 export const hasPendingPayment = (): boolean =>
   usePaymentStore.getState().pendingIntentId !== null;

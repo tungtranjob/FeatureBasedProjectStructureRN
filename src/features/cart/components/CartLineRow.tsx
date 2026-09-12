@@ -40,8 +40,8 @@ export function CartLineRow({line, onChangeQuantity, onRemove}: CartLineRowProps
 
           <QuantityStepper
             value={line.quantity}
-            // min = 0 để bước xuống 0 nghĩa là xoá món — hành vi quen thuộc
-            // trong các app đặt đồ ăn.
+            // min = 0 so stepping down to 0 removes the item — the familiar behaviour
+            // in food delivery apps.
             min={0}
             onChange={next => (next === 0 ? onRemove() : onChangeQuantity(next))}
             testID={`cart-qty-${line.id}`}

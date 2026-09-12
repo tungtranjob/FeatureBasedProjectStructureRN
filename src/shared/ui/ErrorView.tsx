@@ -11,9 +11,9 @@ interface ErrorViewProps {
 }
 
 /**
- * Hiển thị lỗi thống nhất. Nhận `unknown` chứ không phải `Error` — vì
- * TanStack Query trả về `unknown`, và ép kiểu ở đây an toàn hơn ép ở
- * từng màn hình.
+ * Consistent error rendering. It takes `unknown` rather than `Error` because
+ * TanStack Query hands back `unknown`, and narrowing the type here is safer
+ * than doing it in every screen.
  */
 export function ErrorView({error, onRetry}: ErrorViewProps) {
   return (

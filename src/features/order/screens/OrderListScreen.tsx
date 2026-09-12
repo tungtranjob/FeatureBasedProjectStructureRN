@@ -16,12 +16,13 @@ export function OrderListScreen() {
   const {data, isPending, error, refetch, isRefetching} = useOrders();
 
   /**
-   * Lọc ở CLIENT thay vì gọi hai endpoint khác nhau.
+   * Filtering on the CLIENT rather than calling two different endpoints.
    *
-   * Hợp lý ở đây vì danh sách đơn của một người dùng thường nhỏ (vài chục).
-   * Nếu là hàng nghìn đơn thì phải lọc ở server — nhưng đừng tối ưu sớm.
+   * Reasonable here because one user's order list is usually small (a few dozen).
+   * With thousands of orders it would have to be filtered server-side — but do not
+   * optimise prematurely.
    *
-   * useMemo để không lọc lại ở mọi lần render (VD khi đổi tab).
+   * useMemo so we do not re-filter on every render (e.g. when switching tabs).
    */
   const orders = useMemo(() => {
     if (!data) {

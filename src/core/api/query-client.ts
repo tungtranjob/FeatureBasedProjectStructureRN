@@ -2,35 +2,35 @@ import {QueryClient} from '@tanstack/react-query';
 import {AppError} from '@shared/errors/app-error';
 
 /**
- * CẤU HÌNH TANSTACK QUERY — chiến lược cache cho TOÀN BỘ server state.
+ * TANSTACK QUERY CONFIG — the caching strategy for ALL server state.
  *
- * ⭐ QUAN ĐIỂM QUẢN LÝ STATE CỦA DỰ ÁN NÀY (đọc kỹ phần này):
+ * ⭐ THIS PROJECT'S TAKE ON STATE MANAGEMENT (worth reading closely):
  *
- *   Server state (danh sách nhà hàng, menu, đơn hàng) -> TanStack Query.
- *     Đặc điểm: app không sở hữu nó, nó có thể cũ đi, cần cache/refetch/retry.
+ *   Server state (restaurant list, menus, orders) -> TanStack Query.
+ *     Traits: the app does not own it, it can go stale, it needs cache/refetch/retry.
  *
- *   Client state (giỏ hàng, phiên đăng nhập, nháp checkout) -> Zustand.
- *     Đặc điểm: app sở hữu hoàn toàn, không có bản gốc trên server để đồng bộ.
+ *   Client state (cart, session, checkout draft) -> Zustand.
+ *     Traits: the app owns it outright; there is no server copy to sync with.
  *
- * Nhét server state vào Zustand là sai lầm phổ biến nhất: bạn sẽ phải tự
- * viết lại loading/error/cache/refetch/dedupe — tức là viết lại TanStack
- * Query, nhưng đầy bug.
+ * Stuffing server state into Zustand is the most common mistake: you end up
+ * reimplementing loading/error/cache/refetch/dedupe by hand — i.e. rewriting
+ * TanStack Query, but buggy.
  */
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       /**
-       * 60 giây coi như dữ liệu còn "tươi". Trong khoảng này, quay lại
-       * màn hình cũ sẽ lấy ngay từ cache, không gọi mạng -> app mượt.
+       * For 60 seconds the data counts as "fresh". Within that window, returning
+       * to a previous screen reads straight from cache with no network call -> smooth.
        */
       staleTime: 60_000,
 
-      /** Giữ cache 5 phút sau khi không còn component nào dùng. */
+      /** Keep the cache for 5 minutes after the last component stops using it. */
       gcTime: 5 * 60_000,
 
       /**
-       * Chỉ retry lỗi mạng/server. Retry lỗi 422 (dữ liệu sai) là vô nghĩa,
-       * chỉ làm user chờ lâu hơn rồi vẫn thấy đúng lỗi đó.
+       * Only retry network/server errors. Retrying a 422 (bad payload) is pointless:
+       * it just makes the user wait longer for the same error.
        */
       retry: (failureCount, error) => {
         if (error instanceof AppError && !error.isRetryable) {
@@ -41,14 +41,14 @@ export const queryClient = new QueryClient({
       retryDelay: attempt => Math.min(1000 * 2 ** attempt, 8000),
 
       /**
-       * Mobile khác web: không có "focus cửa sổ". Ta tự kiểm soát việc
-       * refetch bằng useFocusEffect của React Navigation ở nơi cần.
+       * Mobile differs from web: there is no "window focus". We control refetching
+       * ourselves with React Navigation's useFocusEffect where it matters.
        */
       refetchOnWindowFocus: false,
     },
     mutations: {
-      // KHÔNG BAO GIỜ tự retry mutation: đặt đơn 2 lần là mất tiền thật.
-      // Muốn retry an toàn thì phải có idempotency key (xem PlaceOrderRequestDto).
+      // NEVER auto-retry a mutation: placing an order twice costs real money.
+      // Safe retries require an idempotency key (see PlaceOrderRequestDto).
       retry: false,
     },
   },

@@ -1,13 +1,13 @@
 /**
- * CẦU NỐI TOKEN GIỮA core/ VÀ features/auth.
+ * THE TOKEN BRIDGE BETWEEN core/ AND features/auth.
  *
- * Vấn đề: http-client (core) cần access token để gắn header Authorization.
- * Nhưng token do auth store (feature) nắm giữ, mà core KHÔNG ĐƯỢC import
- * feature — làm vậy là phá vỡ chiều phụ thuộc và tạo import vòng.
+ * The problem: http-client (core) needs the access token for the Authorization header.
+ * But the token is held by the auth store (a feature), and core is NOT ALLOWED to
+ * import a feature — doing so breaks the dependency direction and creates a cycle.
  *
- * Giải pháp: đảo ngược phụ thuộc (dependency inversion). core định nghĩa
- * "khe cắm" này, còn app/bootstrap là nơi cắm auth store vào. core vẫn
- * không biết auth store tồn tại, nó chỉ biết có một hàm trả về string.
+ * The fix: dependency inversion. core defines this "socket", and app/bootstrap is
+ * where the auth store gets plugged into it. core still does not know the auth store
+ * exists; it only knows there is a function returning a string.
  */
 type TokenProvider = () => string | null;
 
@@ -15,11 +15,11 @@ let provider: TokenProvider = () => null;
 let onUnauthorized: () => void = () => {};
 
 export const authTokenBridge = {
-  /** Gọi ở app/bootstrap, truyền vào hàm đọc token từ auth store. */
+  /** Called from app/bootstrap with a function that reads the token from the auth store. */
   setTokenProvider(next: TokenProvider): void {
     provider = next;
   },
-  /** Gọi khi server trả 401 — auth feature sẽ đăng xuất người dùng. */
+  /** Called when the server returns 401 — the auth feature signs the user out. */
   setUnauthorizedHandler(next: () => void): void {
     onUnauthorized = next;
   },

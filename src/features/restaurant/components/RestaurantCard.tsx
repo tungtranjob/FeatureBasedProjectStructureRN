@@ -12,12 +12,12 @@ interface RestaurantCardProps {
 }
 
 /**
- * Component NGHIỆP VỤ — biết "nhà hàng" là gì, nên nó thuộc feature
- * restaurant chứ không phải shared/ui.
+ * A DOMAIN component — it knows what a "restaurant" is, so it belongs to the
+ * restaurant feature rather than shared/ui.
  *
- * Ranh giới rất rõ: shared/ui/Card không biết nhà hàng là gì; còn
- * RestaurantCard thì không biết gì về bo góc hay đổ bóng — nó uỷ thác
- * chuyện đó cho Card.
+ * The boundary is sharp: shared/ui/Card does not know what a restaurant is, and
+ * RestaurantCard knows nothing about corner radii or shadows — it delegates that
+ * to Card.
  */
 export function RestaurantCard({restaurant, onPress}: RestaurantCardProps) {
   const availability = getAvailability(restaurant);

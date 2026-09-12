@@ -1,20 +1,20 @@
 /**
- * RANH GIỚI KIẾN TRÚC — ÉP BẰNG MÁY, KHÔNG BẰNG NIỀM TIN.
+ * ARCHITECTURAL BOUNDARIES — ENFORCED BY A TOOL, NOT BY GOOD INTENTIONS.
  *
- * Đây là file quan trọng nhất của repo về mặt kiến trúc.
- * Không có nó, feature-first sẽ thoái hoá thành "thư mục đặt tên đẹp"
- * chỉ sau vài sprint, vì chẳng ai nhớ nổi luật khi đang vội.
+ * Architecturally, this is the most important file in the repo.
+ * Without it, feature-first degrades into "nicely named folders" within a few
+ * sprints, because nobody remembers the rules when they are in a hurry.
  *
- * Chạy: npm run arch:check
- * Nên gắn vào pre-commit hook và CI.
+ * Run: npm run arch:check
+ * Worth wiring into a pre-commit hook and CI.
  */
 module.exports = {
   forbidden: [
     {
       name: 'no-cross-feature-internals',
       comment:
-        'Feature A chỉ được import feature B qua public API (@features/b), ' +
-        'KHÔNG được thò tay vào file nội bộ của B. Đây là luật số 1.',
+        'Feature A may import feature B only through its public API (@features/b), ' +
+        'and must NOT reach into B\'s internal files. This is rule number 1.',
       severity: 'error',
       from: {path: '^src/features/([^/]+)/'},
       to: {
@@ -25,9 +25,9 @@ module.exports = {
     {
       name: 'model-must-be-pure',
       comment:
-        'Thư mục model/ là logic nghiệp vụ thuần TypeScript. Không React, ' +
-        'không React Native, không navigation. Nhờ vậy nó test được trong ' +
-        'mili-giây mà không cần render gì cả.',
+        'The model/ folder is pure TypeScript business logic. No React, ' +
+        'no React Native, no navigation. That is what makes it testable in ' +
+        'milliseconds without rendering anything.',
       severity: 'error',
       from: {path: '^src/features/[^/]+/model'},
       to: {path: 'node_modules/(react|react-native|@react-navigation)'},
@@ -35,8 +35,8 @@ module.exports = {
     {
       name: 'shared-cannot-know-features',
       comment:
-        'shared/ và core/ là tầng dưới. Nếu chúng import feature thì đồ thị ' +
-        'phụ thuộc có chu trình và không thể tách module được nữa.',
+        'shared/ and core/ are the lower layers. If they import a feature, the ' +
+        'dependency graph becomes cyclic and the modules can no longer be split apart.',
       severity: 'error',
       from: {path: '^src/(shared|core)'},
       to: {path: '^src/features'},
@@ -44,22 +44,22 @@ module.exports = {
     {
       name: 'features-cannot-know-app',
       comment:
-        'app/ là composition root — nó biết mọi feature. Chiều ngược lại ' +
-        'thì không: feature không được biết app/ tồn tại.',
+        'app/ is the composition root — it knows every feature. The reverse is ' +
+        'not allowed: a feature must not know that app/ exists.',
       severity: 'error',
       from: {path: '^src/features'},
       to: {path: '^src/app'},
     },
     {
       name: 'no-circular',
-      comment: 'Import vòng gần như luôn là dấu hiệu ranh giới bị cắt sai chỗ.',
+      comment: 'A circular import is almost always a sign the boundary was drawn in the wrong place.',
       severity: 'error',
       from: {},
       to: {circular: true},
     },
     {
       name: 'no-orphans',
-      comment: 'File không ai import — thường là code chết sau refactor.',
+      comment: 'A file nobody imports — usually dead code left over from a refactor.',
       severity: 'warn',
       from: {orphan: true, pathNot: ['\\.d\\.ts$', '^src/app/App\\.tsx$']},
       to: {},

@@ -1,9 +1,9 @@
 /**
- * Branded ID — chặn lỗi truyền nhầm loại id cho nhau.
+ * Branded IDs — prevent passing the wrong kind of id to a function.
  *
- * Không có nó, `getOrder(restaurantId)` biên dịch ngon lành vì cả hai đều là
- * `string`, rồi chết lúc runtime. Có nó, TypeScript chặn ngay lúc gõ.
- * Chi phí: 0 byte lúc runtime (đây thuần tuý là kiểu, bị xoá khi compile).
+ * Without them, `getOrder(restaurantId)` compiles happily because both are
+ * `string`, then blows up at runtime. With them, TypeScript catches it as you type.
+ * Cost: 0 bytes at runtime (this is purely a type, erased at compile time).
  */
 declare const brand: unique symbol;
 type Brand<T, B> = T & {readonly [brand]: B};
@@ -18,7 +18,7 @@ export type UserId = Brand<string, 'UserId'>;
 export type AddressId = Brand<string, 'AddressId'>;
 
 /**
- * Ép kiểu tại BIÊN của hệ thống (khi parse response API).
- * Bên trong app thì kiểu đã đúng rồi, không cần gọi lại.
+ * Cast at the BOUNDARY of the system (when parsing an API response).
+ * Inside the app the types are already correct, so no need to call this again.
  */
 export const asId = <T extends string>(value: string): T => value as T;

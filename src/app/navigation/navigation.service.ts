@@ -2,15 +2,15 @@ import {createNavigationContainerRef} from '@react-navigation/native';
 import type {RootStackParamList} from './types';
 
 /**
- * Điều hướng từ NGOÀI cây React.
+ * Navigating from OUTSIDE the React tree.
  *
- * Cần cho các tình huống mà ta không có component nào trong tay:
- *  - Người dùng chạm vào push notification.
- *  - Listener của event bus trong app/bootstrap.
- *  - Interceptor bắt lỗi 401 và cần đá về màn đăng nhập.
+ * Needed for situations where no component is at hand:
+ *  - The user taps a push notification.
+ *  - An event bus listener in app/bootstrap.
+ *  - The interceptor catching a 401 and needing to bounce to the login screen.
  *
- * ⚠️ Luôn kiểm tra isReady(): điều hướng trước khi NavigationContainer gắn
- * xong sẽ im lặng không làm gì — một lỗi rất khó lần vì không có thông báo.
+ * ⚠️ Always check isReady(): navigating before NavigationContainer has mounted
+ * silently does nothing — a nasty bug to track down because there is no warning.
  */
 export const navigationRef = createNavigationContainerRef<RootStackParamList>();
 
@@ -20,7 +20,7 @@ export const navigate = <T extends keyof RootStackParamList>(
     : [screen: T, params: RootStackParamList[T]]
 ): void => {
   if (navigationRef.isReady()) {
-    // @ts-expect-error — chữ ký biến thiên của navigate khó biểu diễn chính xác
+    // @ts-expect-error — navigate's variadic signature is hard to express precisely
     navigationRef.navigate(...args);
   }
 };

@@ -2,22 +2,22 @@ import {create} from 'zustand';
 import type {PaymentMethod} from '@features/payment';
 
 /**
- * NHÁP CHECKOUT — client state, và CỐ TÌNH KHÔNG PERSIST.
+ * THE CHECKOUT DRAFT — client state, and DELIBERATELY NOT PERSISTED.
  *
- * So sánh với ba store còn lại trong app để thấy quyết định persist không
- * phải lúc nào cũng giống nhau:
+ * Compare it with the app's other three stores to see that the persistence decision
+ * is not always the same:
  *
- *   cart.store      -> CÓ persist. Mất giỏ hàng là mất công chọn món.
- *   auth.store      -> CÓ persist. Bắt đăng nhập lại mỗi lần mở app là tệ.
- *   payment.store   -> CÓ persist. BẮT BUỘC, vì liên quan tới tiền.
- *   checkout.store  -> KHÔNG persist. Voucher có thể hết hạn, hình thức
- *                      thanh toán có thể không còn hợp lệ với giỏ mới. Khôi
- *                      phục lại một lựa chọn cũ chỉ gây nhầm lẫn, và giá trị
- *                      mặc định thì rẻ để tính lại.
+ *   cart.store      -> persisted. Losing the cart means re-picking every item.
+ *   auth.store      -> persisted. Forcing a login on every launch is awful.
+ *   payment.store   -> persisted. MANDATORY, because money is involved.
+ *   checkout.store  -> NOT persisted. The voucher may have expired and the payment
+ *                      method may no longer suit the new cart. Restoring an old
+ *                      choice only causes confusion, and the defaults are cheap to
+ *                      recompute.
  *
- * Quy tắc rút ra: chỉ persist thứ mà mất đi sẽ làm người dùng khó chịu HOẶC
- * gây sai lệch dữ liệu. Persist mọi thứ "cho chắc" tạo ra một lớp bug riêng
- * về dữ liệu cũ.
+ * The rule of thumb: only persist what would annoy the user to lose OR what would
+ * corrupt data if lost. Persisting everything "just in case" creates its own class of
+ * stale-data bugs.
  */
 interface CheckoutState {
   voucherId: string | null;

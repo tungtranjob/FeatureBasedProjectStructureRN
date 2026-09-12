@@ -11,15 +11,15 @@ import type {MainTabParamList} from './types';
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
 /**
- * Thanh tab dưới cùng.
+ * The bottom tab bar.
  *
- * File này nằm ở app/ chứ không nằm trong feature nào, vì nó là nơi các
- * feature GẶP NHAU. Đây chính là vai trò của composition root: chỉ nó biết
- * tất cả, còn các feature không biết nhau.
+ * This file lives in app/ rather than inside a feature, because it is where the
+ * features MEET. That is exactly the composition root's job: only it knows about
+ * all of them, while the features know nothing about each other.
  */
 export function MainTabNavigator() {
-  // Badge giỏ hàng đọc từ cart — tab navigator là chỗ hợp lệ để làm việc
-  // này vì nó vốn thuộc tầng app.
+  // The cart badge reads from cart — the tab navigator is a legitimate place for
+  // this because it belongs to the app layer.
   const cartCount = useCartBadge();
 
   return (

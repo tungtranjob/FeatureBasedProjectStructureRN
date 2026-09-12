@@ -15,18 +15,18 @@ import type {PaymentStackParamList} from '../navigation/payment.routes';
 type ProcessingRoute = RouteProp<PaymentStackParamList, 'PaymentProcessing'>;
 
 /**
- * MÀN HÌNH CHỜ KẾT QUẢ THANH TOÁN.
+ * THE PAYMENT WAITING SCREEN.
  *
- * Màn hình này tồn tại chính là vì trên mobile, người dùng RỜI APP giữa
- * chừng. Nó phải xử lý được cả khi bị mở lại từ con số không sau khi hệ
- * điều hành giết app.
+ * This screen exists precisely because on mobile the user LEAVES THE APP midway.
+ * It has to work even when it is reopened from scratch after the OS has killed the
+ * app.
  *
- * Ba nguyên tắc:
- *  1. KHÔNG cho vuốt back / bấm back khi đang chờ — user thoát ra giữa
- *     chừng là mất dấu giao dịch.
- *  2. Luôn có lối thoát thủ công ("Tôi đã thanh toán xong") phòng khi
- *     webhook về chậm hoặc deep link không bắn.
- *  3. Không bao giờ tự kết luận thành công ở phía client.
+ * Three principles:
+ *  1. NO back swipe / back button while waiting — a user leaving midway loses track
+ *     of the transaction.
+ *  2. Always offer a manual escape hatch ("Tôi đã thanh toán xong") in case the
+ *     webhook is slow or the deep link never fires.
+ *  3. Never conclude success on the client.
  */
 export function PaymentProcessingScreen() {
   const navigation = useNavigation();
@@ -34,7 +34,7 @@ export function PaymentProcessingScreen() {
 
   const {status, verifyNow, abandon} = usePaymentReturn({
     onResolved: ({success, orderId}) => {
-      // Thay thế màn hình hiện tại để nút back không quay lại đây được nữa.
+      // Replace the current screen so the back button cannot return here.
       navigation.reset({
         index: 0,
         routes: [

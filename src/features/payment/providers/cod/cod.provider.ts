@@ -1,14 +1,14 @@
 import type {PaymentProvider} from '../provider.types';
 
 /**
- * PROVIDER COD — "provider rỗng".
+ * THE COD PROVIDER — an "empty provider".
  *
- * Tiền mặt thì chẳng có cổng thanh toán nào cả. Nhưng ta vẫn tạo provider
- * cho nó, thay vì viết `if (method === 'COD') { ... }` trong màn checkout.
+ * Cash has no payment gateway at all. We still give it a provider rather than writing
+ * `if (method === 'COD') { ... }` in the checkout screen.
  *
- * Vì sao: mọi phương thức đi qua CÙNG một đường dẫn code. Không có nhánh
- * đặc biệt nào để quên xử lý, không có màn hình nào phải biết COD là ngoại lệ.
- * Đây là mẫu Null Object.
+ * Why: every method goes down the SAME code path. There is no special branch left
+ * unhandled, and no screen has to know that COD is an exception.
+ * This is the Null Object pattern.
  */
 export const codProvider: PaymentProvider = {
   method: 'COD',
@@ -18,7 +18,7 @@ export const codProvider: PaymentProvider = {
   },
 
   async pay() {
-    // Không có gì để mở. Đơn đã ở trạng thái CONFIRMED ngay từ server.
+    // Nothing to open. The order is already CONFIRMED by the server.
     return {status: 'completed'};
   },
 };

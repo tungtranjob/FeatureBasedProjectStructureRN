@@ -41,9 +41,9 @@ export interface Menu {
 }
 
 /**
- * Lựa chọn của người dùng: groupId -> danh sách optionId đã chọn.
+ * The user's selection: groupId -> the list of selected optionIds.
  *
- * Dùng map thay vì mảng phẳng vì phần lớn thao tác là "nhóm này đang chọn
- * gì" (kiểm tra bắt buộc, giới hạn số lượng chọn) — map cho ta O(1).
+ * A map rather than a flat array because most operations ask "what is selected in this
+ * group" (checking required groups, checking selection limits) — a map gives us O(1).
  */
 export type OptionSelection = Record<string, string[]>;

@@ -1,23 +1,23 @@
 import type {Money} from '@shared/types/money';
 
 /**
- * Một dòng trong giỏ hàng.
+ * A single line in the cart.
  *
- * ⭐ Chú ý: đây là ẢNH CHỤP (snapshot), không phải tham chiếu tới MenuItem.
- * Giỏ hàng lưu sẵn tên, ảnh, giá đã tính — nhờ vậy nó hiển thị được kể cả
- * khi mất mạng, và giá không tự nhảy khi quán đổi bảng giá lúc user đang
- * chọn món.
+ * ⭐ Note: this is a SNAPSHOT, not a reference to a MenuItem.
+ * The cart stores the name, image and computed price up front — so it renders even
+ * when offline, and the price does not jump when the restaurant changes its prices
+ * while the user is picking items.
  *
- * `cart` KHÔNG import gì từ `menu`. Quan hệ là một chiều: menu -> cart.
+ * `cart` imports NOTHING from `menu`. The relationship is one-way: menu -> cart.
  */
 export interface CartLine {
-  /** Id của dòng, KHÁC với menuItemId: cùng một món chọn topping khác nhau
-   *  là hai dòng riêng biệt. */
+  /** The line's id, DIFFERENT from menuItemId: the same item with different toppings
+   *  is two separate lines. */
   id: string;
   menuItemId: string;
   name: string;
   imageUrl: string;
-  /** Giá một phần, ĐÃ gồm chênh lệch topping. */
+  /** Unit price, INCLUDING the topping deltas. */
   unitPrice: Money;
   quantity: number;
   optionIds: string[];
@@ -26,12 +26,11 @@ export interface CartLine {
 }
 
 /**
- * Giỏ hàng chỉ chứa món của MỘT nhà hàng.
+ * A cart only holds items from ONE restaurant.
  *
- * Đây là quy tắc nghiệp vụ, không phải giới hạn kỹ thuật: một đơn = một
- * nhà hàng = một tài xế. Việc mã hoá quy tắc này ngay trong kiểu dữ liệu
- * (restaurantId nằm ở cấp giỏ hàng chứ không phải cấp từng dòng) khiến
- * trạng thái sai trở thành bất khả thi.
+ * That is a business rule, not a technical limitation: one order = one restaurant =
+ * one driver. Encoding the rule in the type itself (restaurantId lives at the cart
+ * level rather than on each line) makes the invalid state impossible to represent.
  */
 export interface Cart {
   restaurantId: string | null;

@@ -4,13 +4,13 @@ import {authApi} from '../api/auth.api';
 import {useAuthStore} from '../store/auth.store';
 
 /**
- * Hook public của feature auth. Màn hình không đụng trực tiếp vào store —
- * chúng đi qua hook này. Nhờ vậy ta có thể đổi cách lưu session (zustand ->
- * context -> redux) mà không sửa một dòng nào trong screen.
+ * The auth feature's public hook. Screens never touch the store directly —
+ * they go through this hook. That lets us change how the session is stored
+ * (zustand -> context -> redux) without editing a single line in a screen.
  */
 export function useAuth() {
-  // useShallow: so sánh nông từng field, tránh re-render khi object mới nhưng
-  // nội dung không đổi.
+  // useShallow: compares field by field, avoiding a re-render when the object is new
+  // but its contents have not changed.
   const {user, status, hasHydrated, logout} = useAuthStore(
     useShallow(state => ({
       user: state.session?.user ?? null,
@@ -30,11 +30,11 @@ export function useAuth() {
 }
 
 /**
- * Mutation đăng nhập.
+ * The login mutation.
  *
- * Đăng nhập là server state? Không — nó là một HÀNH ĐỘNG. Ta dùng
- * useMutation để có sẵn isPending/error, còn kết quả thì ghi vào Zustand
- * store vì phiên đăng nhập là client state tồn tại lâu dài.
+ * Is logging in server state? No — it is an ACTION. We use useMutation to get
+ * isPending/error for free, and write the result into the Zustand store because
+ * the session is long-lived client state.
  */
 export function useLogin() {
   const setSession = useAuthStore(state => state.setSession);

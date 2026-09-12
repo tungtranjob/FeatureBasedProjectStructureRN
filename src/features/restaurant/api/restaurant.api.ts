@@ -9,9 +9,9 @@ import type {Restaurant} from '../model/types';
 /**
  * MAPPER DTO -> DOMAIN MODEL.
  *
- * Chỉ một hàm nhỏ, nhưng nó là "hải quan" của feature: mọi dữ liệu từ server
- * phải khai báo ở đây trước khi được vào trong app. Khi backend đổi
- * `coverImageUrl` thành `thumbnail`, bạn sửa đúng 1 dòng tại đây.
+ * Only a small function, but it is the feature's "customs desk": all server data has
+ * to be declared here before it is allowed into the app. When the backend renames
+ * `coverImageUrl` to `thumbnail`, you edit exactly 1 line here.
  */
 const toRestaurant = (dto: RestaurantDto): Restaurant => ({
   id: asId<RestaurantId>(dto.id),
@@ -21,7 +21,7 @@ const toRestaurant = (dto: RestaurantDto): Restaurant => ({
   rating: dto.rating,
   ratingCount: dto.ratingCount,
   distanceKm: dto.distanceKm,
-  // number trần -> Money có branded type.
+  // bare number -> the branded Money type.
   deliveryFee: money(dto.deliveryFee),
   minOrderAmount: money(dto.minOrderAmount),
   etaMinutes: dto.etaMinutes,

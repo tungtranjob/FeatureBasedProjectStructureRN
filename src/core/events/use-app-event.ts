@@ -3,10 +3,10 @@ import {appEventBus} from './app-event-bus';
 import type {AppEventName, AppEvents} from './app-events';
 
 /**
- * Lắng nghe event bên trong component React.
+ * Subscribes to an event from inside a React component.
  *
- * Dùng ref để giữ handler mới nhất, nhờ vậy bạn không cần bọc handler trong
- * useCallback và listener cũng không bị gỡ/gắn lại mỗi lần render.
+ * It keeps the latest handler in a ref, so you do not need to wrap the handler in
+ * useCallback and the listener is not detached/reattached on every render.
  */
 export function useAppEvent<K extends AppEventName>(
   event: K,

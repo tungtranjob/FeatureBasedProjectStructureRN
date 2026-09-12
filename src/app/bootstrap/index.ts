@@ -4,28 +4,28 @@ import {forceLogout, getAccessToken} from '@features/auth';
 import {registerEventHandlers} from './register-event-handlers';
 
 /**
- * Khởi tạo app — chạy MỘT LẦN trước khi render.
+ * App initialisation — runs ONCE before the first render.
  *
- * Trả về hàm dọn dẹp để Fast Refresh không làm listener nhân lên.
+ * Returns a cleanup function so Fast Refresh does not multiply listeners.
  */
 export function bootstrap(): () => void {
   logger.info('App', 'Bootstrap');
 
   /**
-   * ⭐ ĐẢO NGƯỢC PHỤ THUỘC TẠI CHỖ.
+   * ⭐ DEPENDENCY INVERSION, WIRED UP HERE.
    *
-   * http-client (core) cần token, nhưng core không được import feature.
-   * Ở đây — trong app/, nơi được phép biết cả hai — ta cắm chúng vào nhau.
+   * http-client (core) needs the token, but core may not import a feature.
+   * Here — in app/, the one place allowed to know about both — we plug them together.
    *
-   * Nhờ vậy core/ vẫn dùng lại được cho một app khác không có feature auth
-   * này, và đồ thị phụ thuộc không có chu trình nào.
+   * That keeps core/ reusable in another app that has no auth feature, and leaves
+   * the dependency graph free of cycles.
    */
   authTokenBridge.setTokenProvider(getAccessToken);
   authTokenBridge.setUnauthorizedHandler(forceLogout);
 
   const unregisterEvents = registerEventHandlers();
 
-  // Nơi đặt các bước khởi tạo khác trong app thật:
+  // Where the other startup steps would go in a real app:
   //   initSentry();
   //   initPushNotifications();
   //   initAnalytics();

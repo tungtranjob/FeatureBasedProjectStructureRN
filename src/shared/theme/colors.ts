@@ -1,9 +1,9 @@
 /**
- * Design token — nguồn sự thật DUY NHẤT về màu.
+ * Design tokens — the SINGLE source of truth for colour.
  *
- * Không bao giờ hardcode '#FF5722' trong component. Lý do không phải là
- * "cho đẹp": khi cần đổi brand color hoặc thêm dark mode, bạn chỉ sửa file
- * này thay vì grep 300 chỗ và bỏ sót 20 chỗ.
+ * Never hardcode '#FF5722' in a component. The reason is not aesthetics:
+ * when the brand colour changes or dark mode arrives, you edit this one file
+ * instead of grepping 300 places and missing 20 of them.
  */
 export const colors = {
   primary: '#EE4D2D',

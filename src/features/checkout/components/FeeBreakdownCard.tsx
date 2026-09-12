@@ -7,7 +7,7 @@ import type {FeeBreakdown} from '@features/order';
 
 interface FeeBreakdownCardProps {
   fees: FeeBreakdown;
-  /** Đang chờ báo giá chính thức từ server. */
+  /** Waiting for the official quote from the server. */
   isQuoting: boolean;
 }
 
@@ -16,8 +16,8 @@ export function FeeBreakdownCard({fees, isQuoting}: FeeBreakdownCardProps) {
     <Card style={styles.card}>
       <View style={styles.header}>
         <Txt variant="bodyStrong">Chi tiết thanh toán</Txt>
-        {/* Chỉ báo nhỏ thay vì che cả thẻ bằng spinner: người dùng vẫn đọc
-            được số tạm tính trong lúc server xác nhận lại. */}
+        {/* A small indicator instead of covering the card with a spinner: the user can
+            still read the provisional total while the server confirms it. */}
         {isQuoting && <ActivityIndicator size="small" color={colors.textMuted} />}
       </View>
 

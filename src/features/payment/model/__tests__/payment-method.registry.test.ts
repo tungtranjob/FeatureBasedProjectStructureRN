@@ -23,7 +23,7 @@ describe('resolveValidMethod', () => {
   });
 
   it('tự chuyển khi phương thức hiện tại không còn hợp lệ', () => {
-    // Kịch bản: chọn COD rồi thêm món khiến đơn vượt 1 triệu.
+    // The scenario: pick COD, then add items until the order passes 1 million.
     const next = resolveValidMethod('COD', money(1_500_000), 'ios');
     expect(next).not.toBe('COD');
   });

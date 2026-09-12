@@ -3,14 +3,14 @@ import {restaurantApi} from './restaurant.api';
 import {restaurantKeys} from './restaurant.keys';
 
 /**
- * SERVER STATE — dùng TanStack Query, KHÔNG dùng Zustand.
+ * SERVER STATE — use TanStack Query, NOT Zustand.
  *
- * Chỉ vài dòng nhưng bạn được miễn phí: cache, dedupe (2 component cùng gọi
+ * A handful of lines, and you get for free: caching, dedupe (2 components calling
  * -> 1 request), loading/error state, retry, refetch, background update,
- * và dọn rác khi không ai dùng nữa.
+ * and garbage collection when nobody uses it any more.
  *
- * Tự viết lại ngần ấy thứ trong một Zustand store là công việc vài tuần và
- * sẽ đầy bug tinh vi.
+ * Rebuilding all of that inside a Zustand store is weeks of work and would be full
+ * of subtle bugs.
  */
 export function useRestaurants(filters: {search?: string; cuisine?: string} = {}) {
   return useQuery({
@@ -23,7 +23,7 @@ export function useRestaurant(id: string | undefined) {
   return useQuery({
     queryKey: restaurantKeys.detail(id ?? ''),
     queryFn: () => restaurantApi.detail(id as string),
-    // Chưa có id thì đừng gọi mạng. Quan trọng khi id đến từ param điều hướng.
+    // No id yet means no network call. Important when the id comes from a navigation param.
     enabled: Boolean(id),
   });
 }

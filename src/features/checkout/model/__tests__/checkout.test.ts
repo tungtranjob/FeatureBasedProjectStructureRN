@@ -33,7 +33,7 @@ describe('calcOrderTotal', () => {
   });
 
   it('không bao giờ trả về tổng âm', () => {
-    // Voucher giảm nhiều hơn cả đơn — không được ra số âm.
+    // The voucher is worth more than the order — the result must not go negative.
     const fees = calcOrderTotal({
       subtotal: money(50000),
       deliveryFee: money(15000),

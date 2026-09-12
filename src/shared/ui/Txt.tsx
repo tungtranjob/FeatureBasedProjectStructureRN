@@ -8,10 +8,10 @@ interface TxtProps extends TextProps {
 }
 
 /**
- * Bọc <Text> để ép mọi chữ trong app đi qua thang typography.
+ * Wraps <Text> so every piece of text in the app goes through the typography scale.
  *
- * Quy ước: component trong shared/ui KHÔNG biết gì về nghiệp vụ. Nó không
- * biết "giá món ăn" là gì, chỉ biết "chữ đậm màu cam". Nghiệp vụ nằm ở feature.
+ * Convention: components in shared/ui know NOTHING about the domain. This one does
+ * not know what a "dish price" is, only "bold orange text". Domain logic lives in features.
  */
 export function Txt({variant = 'body', color, style, ...rest}: TxtProps) {
   const base = typography[variant] as TextStyle;

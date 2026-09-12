@@ -5,17 +5,17 @@ import {usePaymentStore} from '../store/payment.store';
 import type {PaymentFlowStatus, PaymentIntent} from '../model/types';
 
 /**
- * Khởi động thanh toán cho một payment intent đã có.
+ * Starts payment for an existing payment intent.
  *
- * ⚠️ THỨ TỰ CÁC BƯỚC Ở ĐÂY KHÔNG ĐƯỢC PHÉP ĐỔI.
+ * ⚠️ THE ORDER OF THE STEPS HERE MUST NOT BE CHANGED.
  *
- * Ta ghi pendingIntentId xuống đĩa TRƯỚC khi gọi provider.pay(). Vì sao:
- * provider.pay() có thể làm app rời đi NGAY LẬP TỨC (Linking.openURL).
- * Nếu ghi sau, trong khoảnh khắc đó app đã ở nền và dòng code ghi store
- * có thể không bao giờ chạy -> mất dấu giao dịch.
+ * We write pendingIntentId to disk BEFORE calling provider.pay(). Why:
+ * provider.pay() can make the app leave IMMEDIATELY (Linking.openURL).
+ * Writing afterwards means that by then the app is in the background and the line that
+ * writes to the store may never run -> the transaction is lost.
  *
- * Quy tắc tổng quát: mọi thứ cần sống sót qua việc rời app phải được ghi
- * xuống đĩa TRƯỚC khi rời đi.
+ * The general rule: anything that has to survive leaving the app must be written to
+ * disk BEFORE leaving.
  */
 export function useInitiatePayment() {
   const [status, setStatus] = useState<PaymentFlowStatus>('idle');
@@ -38,7 +38,7 @@ export function useInitiatePayment() {
           return {status: 'aborted' as const};
         }
 
-        // ⭐ GHI XUỐNG ĐĨA TRƯỚC KHI CÓ THỂ RỜI APP.
+        // ⭐ WRITE TO DISK BEFORE THE APP CAN LEAVE.
         setPending({intentId: intent.id, orderId: intent.orderId});
 
         const result = await provider.pay(intent);
@@ -48,11 +48,11 @@ export function useInitiatePayment() {
           setStatus('failed');
           setError(result.reason);
         } else if (result.status === 'completed') {
-          // COD: không có gì để chờ.
+          // COD: there is nothing to wait for.
           clearPending();
           setStatus('succeeded');
         } else {
-          // Đã rời app. Từ giờ use-payment-return.ts tiếp quản.
+          // The app has left. From here on use-payment-return.ts takes over.
           setStatus('redirected');
         }
 

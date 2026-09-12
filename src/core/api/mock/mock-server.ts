@@ -3,32 +3,32 @@ import {env} from '../../config/env';
 import {logger} from '../../logger/logger';
 
 /**
- * MOCK SERVER CHẠY TRONG APP.
+ * AN IN-APP MOCK SERVER.
  *
- * Vì sao tự viết ~90 dòng thay vì dùng MSW:
- *  - MSW trên React Native cần cấu hình polyfill khá phiền.
- *  - Ở đây ta chỉ cần đúng 3 thứ: định tuyến, độ trễ, và lỗi giả lập.
- *  - Ít phép màu hơn -> dễ debug hơn khi dữ liệu demo cư xử lạ.
+ * Why hand-roll ~90 lines instead of using MSW:
+ *  - MSW on React Native needs fiddly polyfill configuration.
+ *  - We only need three things here: routing, latency, and simulated failures.
+ *  - Less magic -> easier to debug when the demo data behaves oddly.
  *
- * Nó mô phỏng đủ thứ mà một backend thật có và file JSON tĩnh KHÔNG có:
- *  - Độ trễ mạng (để thấy skeleton, thấy nút bị disable lúc loading).
- *  - Mã lỗi HTTP (để test ErrorView, retry, và các nhánh thất bại).
- *  - Trạng thái thay đổi được (đặt đơn -> đơn mới xuất hiện trong lịch sử).
+ * It simulates everything a real backend has that a static JSON file does NOT:
+ *  - Network latency (so you can see skeletons and buttons disabled while loading).
+ *  - HTTP error codes (to exercise ErrorView, retry, and failure branches).
+ *  - Mutable state (place an order -> it shows up in the order history).
  */
 
 export type HttpMethod = 'GET' | 'POST' | 'PATCH' | 'DELETE';
 
 export interface MockContext {
-  /** Tham số đường dẫn, VD '/restaurants/:id' -> {id: 'res_01'}. */
+  /** Path params, e.g. '/restaurants/:id' -> {id: 'res_01'}. */
   params: Record<string, string>;
-  /** Query string đã parse, VD '?page=2' -> {page: '2'}. */
+  /** Parsed query string, e.g. '?page=2' -> {page: '2'}. */
   query: Record<string, string>;
   body: unknown;
 }
 
 type MockHandler = (ctx: MockContext) => unknown;
 
-/** Lỗi có mã HTTP — handler ném ra để mô phỏng response 4xx/5xx. */
+/** An error carrying an HTTP status — handlers throw it to simulate a 4xx/5xx response. */
 export class MockHttpError extends Error {
   constructor(
     readonly status: number,
@@ -48,7 +48,7 @@ interface Route {
 
 const routes: Route[] = [];
 
-/** Đăng ký route, VD: route('GET', '/restaurants/:id', ctx => ...) */
+/** Registers a route, e.g. route('GET', '/restaurants/:id', ctx => ...) */
 export const route = (
   method: HttpMethod,
   pattern: string,
@@ -114,8 +114,8 @@ const randomLatency = (): number => {
 };
 
 /**
- * Điểm vào duy nhất: http-client gọi hàm này khi env.useMockApi = true.
- * Chữ ký giống fetch để lúc chuyển sang backend thật gần như không đổi gì.
+ * The single entry point: http-client calls this when env.useMockApi = true.
+ * The signature mirrors fetch so moving to a real backend changes almost nothing.
  */
 export const handleMockRequest = async (
   method: HttpMethod,
@@ -124,7 +124,7 @@ export const handleMockRequest = async (
 ): Promise<unknown> => {
   await sleep(randomLatency());
 
-  // Lỗi ngẫu nhiên để kiểm chứng UI xử lý lỗi. Bật bằng env.mock.failureRate.
+  // Random failures to verify the UI handles errors. Enable via env.mock.failureRate.
   if (Math.random() < env.mock.failureRate) {
     throw new MockHttpError(503, 'MOCK_FLAKY', 'Mock: lỗi mạng giả lập');
   }

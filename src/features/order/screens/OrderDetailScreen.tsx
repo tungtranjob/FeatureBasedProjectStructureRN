@@ -26,8 +26,8 @@ type DetailRoute = RouteProp<OrderStackParamList, 'OrderDetail'>;
 
 export function OrderDetailScreen() {
   const {params} = useRoute<DetailRoute>();
-  // Query này TỰ ĐỘNG hỏi lại mỗi 10 giây khi đơn còn đang chạy
-  // (xem refetchInterval trong order.queries.ts) -> màn hình tự cập nhật.
+  // This query re-fetches AUTOMATICALLY every 10 seconds while the order is active
+  // (see refetchInterval in order.queries.ts) -> the screen updates itself.
   const {data: order, isPending, error, refetch} = useOrder(params.orderId);
   const cancelOrder = useCancelOrder();
 

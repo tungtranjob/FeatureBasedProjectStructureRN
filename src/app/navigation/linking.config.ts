@@ -5,16 +5,16 @@ import {orderLinking} from '@features/order';
 import type {RootStackParamList} from './types';
 
 /**
- * DEEP LINK — gom mảnh cấu hình từ từng feature.
+ * DEEP LINKS — assembled from the fragments each feature declares.
  *
- * Mỗi feature khai báo phần đường dẫn của mình ngay cạnh màn hình xử lý nó
- * (xem features/payment/navigation/payment.routes.ts). File này chỉ ghép.
+ * Every feature declares its own path segment right next to the screen that handles it
+ * (see features/payment/navigation/payment.routes.ts). This file only stitches them together.
  *
- * Cần khai báo thêm ở tầng native, nếu không deep link sẽ không bao giờ tới:
+ * Extra native declarations are required, otherwise deep links never arrive:
  *   iOS     — ios/FoodGo/Info.plist > CFBundleURLTypes
  *   Android — android/app/src/main/AndroidManifest.xml > intent-filter
  *
- * Thử nhanh mà không cần cổng thanh toán thật:
+ * A quick test without a real payment gateway:
  *   iOS:     xcrun simctl openurl booted "foodgo://payment/return"
  *   Android: adb shell am start -W -a android.intent.action.VIEW \
  *              -d "foodgo://payment/return" com.foodgo

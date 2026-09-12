@@ -14,17 +14,17 @@ interface PaymentMethodListProps {
 }
 
 /**
- * Danh sách hình thức thanh toán — export ra cho feature checkout dùng.
+ * The payment method list — exported for the checkout feature to use.
  *
- * Nó tự lọc theo hạn mức và nền tảng (qua getAvailableMethods), nên checkout
- * không cần biết "COD chỉ cho đơn dưới 1 triệu". Quy tắc đó thuộc về payment.
+ * It filters by limit and platform itself (via getAvailableMethods), so checkout does
+ * not need to know "COD only for orders under 1 million". That rule belongs to payment.
  */
 export function PaymentMethodList({
   amount,
   selected,
   onSelect,
 }: PaymentMethodListProps) {
-  // Tầng component là nơi hợp lệ để đọc trạng thái hệ điều hành.
+  // The component layer is a legitimate place to read OS state.
   const methods = getAvailableMethods(amount, getCurrentPlatform());
 
   return (

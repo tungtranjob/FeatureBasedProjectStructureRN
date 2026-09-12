@@ -5,12 +5,12 @@ import {colors} from '../theme';
 
 interface ScreenProps {
   children: React.ReactNode;
-  /** Có chừa safe area dưới không. Tắt khi màn hình có thanh bar dính đáy. */
+  /** Whether to reserve the bottom safe area. Turn off when the screen has a bottom-pinned bar. */
   edgeBottom?: boolean;
   style?: StyleProp<ViewStyle>;
 }
 
-/** Khung nền chuẩn cho mọi màn hình: màu nền + safe area. */
+/** The standard frame for every screen: background colour + safe area. */
 export function Screen({children, edgeBottom = true, style}: ScreenProps) {
   const insets = useSafeAreaInsets();
   return (

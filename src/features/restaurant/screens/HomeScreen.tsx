@@ -4,8 +4,8 @@ import {useNavigation} from '@react-navigation/native';
 import {EmptyState, ErrorView, Screen, Txt} from '@shared/ui';
 import {colors, radius, spacing} from '@shared/theme';
 import {useDebounce} from '@shared/hooks/use-debounce';
-// Import xuyên feature: CHỈ qua public API '@features/cart', không bao giờ
-// thò vào '@features/cart/store/cart.store'.
+// Cross-feature import: ONLY through the public API '@features/cart', never
+// reaching into '@features/cart/store/cart.store'.
 import {CartFab} from '@features/cart';
 import {useRestaurants} from '../api/restaurant.queries';
 import {RestaurantCard} from '../components/RestaurantCard';
@@ -17,14 +17,14 @@ const CUISINES = ['Phở', 'Bún', 'Cơm', 'Pizza', 'Trà sữa', 'Bánh mì'];
 export function HomeScreen() {
   const navigation = useNavigation();
 
-  // State của UI (chữ đang gõ) -> useState là đúng chỗ.
+  // UI state (the text being typed) -> useState is the right home.
   const [search, setSearch] = useState('');
   const [cuisine, setCuisine] = useState<string | undefined>();
 
-  // Debounce để không bắn request mỗi lần gõ một ký tự.
+  // Debounced so we do not fire a request on every keystroke.
   const debouncedSearch = useDebounce(search, 350);
 
-  // State của server (danh sách nhà hàng) -> TanStack Query là đúng chỗ.
+  // Server state (the restaurant list) -> TanStack Query is the right home.
   const {data, isPending, error, refetch, isRefetching} = useRestaurants({
     search: debouncedSearch,
     cuisine,
@@ -90,7 +90,7 @@ export function HomeScreen() {
         />
       )}
 
-      {/* Giỏ hàng nổi — hiện ở mọi màn hình mua sắm. */}
+      {/* The floating cart — shown on every shopping screen. */}
       <CartFab />
     </Screen>
   );

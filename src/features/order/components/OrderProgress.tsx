@@ -11,11 +11,11 @@ import {
 import type {OrderStatus} from '../model/types';
 
 /**
- * Thanh tiến trình đơn hàng.
+ * The order progress bar.
  *
- * Đơn bị huỷ được xử lý bằng một nhánh RIÊNG chứ không cố nhồi vào thanh
- * tiến trình. Cố vẽ "đã huỷ" thành bước thứ 5 sẽ ra một UI vô nghĩa —
- * huỷ không phải là tiến lên, nó là rẽ ra.
+ * A cancelled order is handled by a SEPARATE branch rather than being forced into the
+ * progress bar. Trying to draw "cancelled" as a 5th step produces meaningless UI —
+ * cancelling is not progress forward, it is a branch off to the side.
  */
 export function OrderProgress({status}: {status: OrderStatus}) {
   if (status === 'CANCELLED') {
@@ -49,7 +49,7 @@ export function OrderProgress({status}: {status: OrderStatus}) {
         return (
           <View key={step} style={styles.step}>
             <View style={styles.markerRow}>
-              {/* Đường nối bên trái, trừ bước đầu tiên */}
+              {/* The connector on the left, except for the first step */}
               {index > 0 && (
                 <View style={[styles.line, done && styles.lineDone]} />
               )}
